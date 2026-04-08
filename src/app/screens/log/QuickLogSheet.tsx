@@ -9,7 +9,7 @@ import {
 import { Text, TextInput, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 import { useCareLogStore } from '../../../store/careLogStore';
 import { GradientButton } from '../../../components/ui/GradientCard';

@@ -11,7 +11,7 @@ import { Text, Card, Avatar, IconButton, Chip, Divider } from 'react-native-pape
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useAuthStore } from '../../../store/authStore';
 import {
@@ -219,7 +219,7 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
                   </View>
                   <View style={styles.feedTypeRow}>
                     <MaterialCommunityIcons
-                      name={config?.icon || 'note-text'}
+                      name={config?.icon as any || 'note-text'}
                       size={16}
                       color={config?.color || colors.textSecondary}
                     />

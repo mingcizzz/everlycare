@@ -11,7 +11,7 @@ import { Text, Card, IconButton, Switch } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { medicationService } from '../../../services/medication.service';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';

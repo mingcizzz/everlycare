@@ -11,7 +11,7 @@ import { Text, Card, Switch, IconButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useReminderStore } from '../../../store/reminderStore';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
@@ -127,7 +127,7 @@ export function RemindersScreen({ navigation }: RootStackScreenProps<'Reminders'
                       ]}
                     >
                       <MaterialCommunityIcons
-                        name={meta.icon}
+                        name={meta.icon as any}
                         size={24}
                         color={meta.color}
                       />

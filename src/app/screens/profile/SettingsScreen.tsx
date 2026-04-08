@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, Clipboard, Alert } from
 import { Text, Card, Avatar, Switch, Divider } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
@@ -37,7 +37,7 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
         <View style={styles.settingLeft}>
           <View style={[styles.iconCircle, { backgroundColor: iconColor + '20' }]}>
             <MaterialCommunityIcons
-              name={iconName}
+              name={iconName as any}
               size={20}
               color={iconColor}
             />

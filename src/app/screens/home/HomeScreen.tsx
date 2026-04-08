@@ -9,7 +9,7 @@ import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';

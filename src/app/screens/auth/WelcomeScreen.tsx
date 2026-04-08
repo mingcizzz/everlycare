@@ -10,7 +10,7 @@ import { Text, Button } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { GradientButton } from '../../../components/ui/GradientCard';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 
@@ -83,7 +83,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
         style={styles.iconCircle}
       >
         <MaterialCommunityIcons
-          name={item.icon}
+          name={item.icon as any}
           size={80}
           color={item.iconColor}
         />

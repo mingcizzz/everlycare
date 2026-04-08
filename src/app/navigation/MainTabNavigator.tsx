@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import type { MainTabParamList } from '../../types/navigation';
 import { colors, shadows } from '../../theme';
 import { HomeScreen } from '../screens/home/HomeScreen';
@@ -29,7 +29,7 @@ export function MainTabNavigator() {
         headerShown: false,
         tabBarIcon: ({ color, size, focused }) => (
           <MaterialCommunityIcons
-            name={focused ? TAB_ICONS[route.name].focused : TAB_ICONS[route.name].unfocused}
+            name={(focused ? TAB_ICONS[route.name].focused : TAB_ICONS[route.name].unfocused) as any}
             size={size}
             color={color}
           />

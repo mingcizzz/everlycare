@@ -10,7 +10,7 @@ import {
 import { Text, TextInput, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 import { GradientButton } from '../../../components/ui/GradientCard';

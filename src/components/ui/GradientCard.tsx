@@ -1,16 +1,9 @@
-import React from 'react';
-import { Pressable, StyleSheet, ViewStyle, ColorValue } from 'react-native';
+import React, { useRef } from 'react';
+import { Pressable, StyleSheet, ViewStyle, ColorValue, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, ActivityIndicator } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, borderRadius, shadows, spacing, typography } from '../../theme';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type GradientColors = readonly [ColorValue, ColorValue, ...ColorValue[]];
 
@@ -33,39 +26,46 @@ export function GradientCard({
   start = { x: 0, y: 0 },
   end = { x: 1, y: 1 },
 }: GradientCardProps) {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     if (onPress) {
-      scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+      Animated.spring(scale, {
+        toValue: 0.97,
+        useNativeDriver: true,
+        speed: 50,
+        bounciness: 4,
+      }).start();
     }
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
   };
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[animatedStyle]}
     >
-      <LinearGradient
-        colors={gradientColors}
-        start={start}
-        end={end}
-        style={[styles.card, shadows.md, style]}
-      >
-        {children}
-      </LinearGradient>
-    </AnimatedPressable>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <LinearGradient
+          colors={gradientColors}
+          start={start}
+          end={end}
+          style={[styles.card, shadows.md, style]}
+        >
+          {children}
+        </LinearGradient>
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -88,52 +88,59 @@ export function GradientButton({
   disabled = false,
   style,
 }: GradientButtonProps) {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const scale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     if (!disabled) {
-      scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
+      Animated.spring(scale, {
+        toValue: 0.96,
+        useNativeDriver: true,
+        speed: 50,
+        bounciness: 4,
+      }).start();
     }
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
   };
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={disabled ? undefined : onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={animatedStyle}
     >
-      <LinearGradient
-        colors={disabled ? ['#BDBDBD', '#9E9E9E'] as GradientColors : gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[styles.button, shadows.sm, style]}
-      >
-        {loading ? (
-          <ActivityIndicator size={20} color={colors.textOnGradient} />
-        ) : (
-          <>
-            {icon && (
-              <MaterialCommunityIcons
-                name={icon}
-                size={20}
-                color={colors.textOnGradient}
-                style={styles.buttonIcon}
-              />
-            )}
-            <Text style={styles.buttonLabel}>{label}</Text>
-          </>
-        )}
-      </LinearGradient>
-    </AnimatedPressable>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <LinearGradient
+          colors={disabled ? ['#BDBDBD', '#9E9E9E'] as GradientColors : gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.button, shadows.sm, style]}
+        >
+          {loading ? (
+            <ActivityIndicator size={20} color={colors.textOnGradient} />
+          ) : (
+            <>
+              {icon && (
+                <MaterialCommunityIcons
+                  name={icon as any}
+                  size={20}
+                  color={colors.textOnGradient}
+                  style={styles.buttonIcon}
+                />
+              )}
+              <Text style={styles.buttonLabel}>{label}</Text>
+            </>
+          )}
+        </LinearGradient>
+      </Animated.View>
+    </Pressable>
   );
 }
 

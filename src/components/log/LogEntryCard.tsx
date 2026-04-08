@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { LOG_TYPE_CONFIG, type CareLog } from '../../types/careLog';
 import { formatTime } from '../../utils/date';
@@ -42,7 +42,7 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
         <View style={styles.headerRow}>
           <View style={[styles.iconBg, { backgroundColor: config.color + '20' }]}>
             <MaterialCommunityIcons
-              name={config.icon}
+              name={config.icon as any}
               size={18}
               color={config.color}
             />

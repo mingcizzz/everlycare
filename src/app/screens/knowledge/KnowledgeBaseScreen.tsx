@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from '
 import { Text, Card, ActivityIndicator } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { knowledgeService, type Article } from '../../../services/knowledge.service';
@@ -94,7 +94,7 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
               onPress={() => setSelectedCategory(cat)}
             >
               <MaterialCommunityIcons
-                name={meta.icon}
+                name={meta.icon as any}
                 size={16}
                 color={isActive ? '#FFFFFF' : meta.color}
               />
@@ -162,7 +162,7 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
                       ]}
                     >
                       <MaterialCommunityIcons
-                        name={meta.icon}
+                        name={meta.icon as any}
                         size={24}
                         color={meta.color}
                       />

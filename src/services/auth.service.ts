@@ -33,6 +33,11 @@ export const authService = {
     return data;
   },
 
+  async resetPassword(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+  },
+
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;

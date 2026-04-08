@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-nativ
 import { Text, Card, SegmentedButtons } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useSettingsStore } from '../../../store/settingsStore';
@@ -195,7 +195,7 @@ function InsightCard({
     <Card style={[styles.card, { borderLeftWidth: 4, borderLeftColor: color }]}>
       <Card.Content>
         <View style={styles.cardHeader}>
-          <MaterialCommunityIcons name={icon} size={24} color={color} />
+          <MaterialCommunityIcons name={icon as any} size={24} color={color} />
           <Text style={styles.cardTitle}>{title}</Text>
         </View>
         {children}

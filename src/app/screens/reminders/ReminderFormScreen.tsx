@@ -10,7 +10,7 @@ import {
 import { Text, TextInput, Button, Chip, IconButton } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useReminderStore } from '../../../store/reminderStore';
 import { reminderService } from '../../../services/reminder.service';
