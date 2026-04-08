@@ -1,20 +1,39 @@
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { theme } from './src/theme';
+import { RootNavigator } from './src/app/navigation/RootNavigator';
+import { notificationService } from './src/services/notification.service';
+import './src/i18n';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
   },
 });
+
+export default function App() {
+  useEffect(() => {
+    // Request notification permissions early (non-blocking)
+    notificationService.requestPermissions().catch(() => {});
+  }, []);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={theme}>
+          <SafeAreaProvider>
+            <StatusBar style="dark" />
+            <RootNavigator />
+          </SafeAreaProvider>
+        </PaperProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
+  );
+}

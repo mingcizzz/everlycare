@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5A9FB2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3A7A8C;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="224" ry="224" fill="url(#bg)" />
+
+  <!-- Heart -->
+  <g transform="translate(512, 370)">
+    <path d="M0 100
+             C-15 85, -50 55, -80 25
+             C-115 -10, -145 -50, -145 -90
+             C-145 -140, -110 -170, -72 -170
+             C-40 -170, -15 -148, 0 -120
+             C15 -148, 40 -170, 72 -170
+             C110 -170, 145 -140, 145 -90
+             C145 -50, 115 -10, 80 25
+             C50 55, 15 85, 0 100 Z"
+          fill="white"
+          opacity="0.95"/>
+    <!-- Heartbeat pulse -->
+    <polyline points="-50,-55 -22,-55 -10,-95 10,-15 22,-55 50,-55"
+              fill="none"
+              stroke="#4A90A4"
+              stroke-width="11"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              opacity="0.6"/>
+  </g>
+
+  <!-- Cupped arc (two gentle hands cupping from below) -->
+  <g transform="translate(512, 600)" fill="none" stroke="white" stroke-linecap="round" opacity="0.9">
+    <!-- Left cupping arc -->
+    <path d="M-30 -20
+             C-60 10, -120 50, -180 30
+             C-210 20, -220 -10, -200 -35"
+          stroke-width="28"/>
+    <!-- Right cupping arc -->
+    <path d="M30 -20
+             C60 10, 120 50, 180 30
+             C210 20, 220 -10, 200 -35"
+          stroke-width="28"/>
+  </g>
+</svg>
