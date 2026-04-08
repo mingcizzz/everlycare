@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
-import { Text, Card, SegmentedButtons, Button } from 'react-native-paper';
+import { Text, Card, SegmentedButtons } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { insightsService, type InsightsData } from '../../../services/insights.service';
 import { reportService } from '../../../services/report.service';
 import { TrendLineChart } from '../../../components/charts/TrendLineChart';
+import { GradientCard, GradientButton } from '../../../components/ui/GradientCard';
 import type { MainTabScreenProps } from '../../../types/navigation';
 
 export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
@@ -61,9 +62,13 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('insights.title')}</Text>
-      </View>
+      {/* Gradient Header Card */}
+      <GradientCard style={styles.headerCard}>
+        <Text style={styles.headerTitle}>{t('insights.title')}</Text>
+        <Text style={styles.headerSubtitle}>
+          {activeRecipient?.name || ''}
+        </Text>
+      </GradientCard>
 
       <SegmentedButtons
         value={period}
@@ -76,16 +81,17 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
         style={styles.segmented}
       />
 
-      <Button
-        mode="contained-tonal"
-        icon="file-pdf-box"
-        onPress={handleExport}
-        loading={isExporting}
-        disabled={isExporting || !data || data.totalLogs === 0}
-        style={styles.exportButton}
-      >
-        {t('insights.exportReport')}
-      </Button>
+      <View style={styles.exportButtonContainer}>
+        <GradientButton
+          label={t('insights.exportReport')}
+          icon="file-pdf-box"
+          onPress={handleExport}
+          loading={isExporting}
+          disabled={isExporting || !data || data.totalLogs === 0}
+          gradientColors={[colors.accent2, '#9C7CFF']}
+          style={styles.exportButton}
+        />
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -98,7 +104,7 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
             <Card.Content style={styles.emptyContent}>
               <MaterialCommunityIcons
                 name="chart-line"
-                size={48}
+                size={80}
                 color={colors.textDisabled}
               />
               <Text style={styles.emptyText}>{t('insights.noDataYet')}</Text>
@@ -186,7 +192,7 @@ function InsightCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card style={styles.card}>
+    <Card style={[styles.card, { borderLeftWidth: 4, borderLeftColor: color }]}>
       <Card.Content>
         <View style={styles.cardHeader}>
           <MaterialCommunityIcons name={icon} size={24} color={color} />
@@ -203,22 +209,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    padding: spacing.md,
-    paddingBottom: spacing.sm,
+  headerCard: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.xl,
   },
-  title: {
+  headerTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
+    color: colors.textOnGradient,
+  },
+  headerSubtitle: {
+    ...typography.bodySmall,
+    color: colors.textOnGradient,
+    opacity: 0.85,
+    marginTop: spacing.xs,
   },
   segmented: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
   },
-  exportButton: {
+  exportButtonContainer: {
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
-    borderRadius: borderRadius.md,
+  },
+  exportButton: {
+    borderRadius: borderRadius.xl,
   },
   content: {
     padding: spacing.md,
@@ -228,6 +246,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    ...shadows.sm,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -257,19 +276,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   adherenceValue: {
-    ...typography.dataLarge,
+    ...typography.dataXL,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
   progressBarBg: {
     width: '100%',
-    height: 12,
+    height: 16,
     backgroundColor: colors.surfaceVariant,
-    borderRadius: 6,
+    borderRadius: 8,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 6,
+    borderRadius: 8,
   },
 });

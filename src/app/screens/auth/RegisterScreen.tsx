@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../store/authStore';
 import { colors, spacing, typography } from '../../../theme';
+import { GradientButton } from '../../../components/ui/GradientCard';
 import type { AuthScreenProps } from '../../../types/navigation';
 
 export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
@@ -105,18 +106,13 @@ export function RegisterScreen({ navigation }: AuthScreenProps<'Register'>) {
               <Text style={styles.error}>{error}</Text>
             ) : null}
 
-            <Button
-              mode="contained"
+            <GradientButton
+              label={t('auth.register')}
               onPress={handleRegister}
               loading={isLoading}
               disabled={isLoading || !email || !password || !displayName}
               style={styles.button}
-              buttonColor={colors.primary}
-              textColor={colors.textOnPrimary}
-              contentStyle={styles.buttonContent}
-            >
-              {t('auth.register')}
-            </Button>
+            />
 
             <Button
               mode="text"
@@ -172,10 +168,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: spacing.sm,
-    borderRadius: 12,
-  },
-  buttonContent: {
-    paddingVertical: spacing.sm,
   },
   linkButton: {
     marginTop: spacing.xs,

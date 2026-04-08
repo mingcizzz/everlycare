@@ -1,6 +1,6 @@
-import { MD3LightTheme, configureFonts } from 'react-native-paper';
-import { colors } from './colors';
-import { spacing, borderRadius } from './spacing';
+import { MD3LightTheme } from 'react-native-paper';
+import { colors, logGradients } from './colors';
+import { spacing, borderRadius, shadows } from './spacing';
 import { typography } from './typography';
 
 export const theme = {
@@ -11,7 +11,7 @@ export const theme = {
     primaryContainer: colors.primaryLight,
     secondary: colors.secondary,
     secondaryContainer: colors.secondaryLight,
-    tertiary: colors.accent,
+    tertiary: colors.accent2,
     error: colors.error,
     background: colors.background,
     surface: colors.surface,
@@ -23,4 +23,4 @@ export const theme = {
   },
 };
 
-export { colors, spacing, borderRadius, typography };
+export { colors, logGradients, spacing, borderRadius, shadows, typography };

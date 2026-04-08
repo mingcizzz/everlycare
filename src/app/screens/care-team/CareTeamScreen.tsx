@@ -7,7 +7,8 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import { Text, Card, Avatar, FAB, IconButton, Chip, Divider } from 'react-native-paper';
+import { Text, Card, Avatar, IconButton, Chip, Divider } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -17,7 +18,7 @@ import {
   careTeamService,
   type ActivityFeedItem,
 } from '../../../services/careteam.service';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { LOG_TYPE_CONFIG, type LogType } from '../../../types/careLog';
 import type { CareTeamMember } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
@@ -25,7 +26,7 @@ import type { RootStackScreenProps } from '../../../types/navigation';
 const ROLE_COLORS: Record<string, string> = {
   primary: colors.primary,
   member: colors.secondary,
-  viewer: colors.textSecondary,
+  viewer: colors.accent2,
 };
 
 export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>) {
@@ -239,12 +240,20 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
       </ScrollView>
 
       {tab === 'members' && (
-        <FAB
-          icon="account-plus"
+        <TouchableOpacity
           onPress={() => navigation.navigate('InviteMember')}
+          activeOpacity={0.8}
           style={styles.fab}
-          color={colors.textOnPrimary}
-        />
+        >
+          <LinearGradient
+            colors={[colors.gradientStart, colors.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.fabGradient}
+          >
+            <MaterialCommunityIcons name="account-plus" size={28} color={colors.textOnPrimary} />
+          </LinearGradient>
+        </TouchableOpacity>
       )}
     </SafeAreaView>
   );
@@ -261,8 +270,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+    ...shadows.sm,
   },
   headerTitle: {
     ...typography.h3,
@@ -282,7 +291,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   tabActive: {
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: colors.primary,
   },
   tabLabel: {
@@ -317,6 +326,7 @@ const styles = StyleSheet.create({
   },
   roleChip: {
     alignSelf: 'flex-start',
+    borderRadius: borderRadius.full,
   },
   roleChipText: {
     fontSize: 11,
@@ -381,7 +391,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.md,
     bottom: spacing.xl,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.full,
+    ...shadows.lg,
+  },
+  fabGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

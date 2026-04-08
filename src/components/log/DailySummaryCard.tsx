@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Card } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { colors, spacing, typography, borderRadius, logGradients } from '../../theme';
+import { GradientCard } from '../ui/GradientCard';
 import { FLUID_DAILY_TARGET_ML } from '../../utils/constants';
 
 interface DailySummary {
@@ -30,118 +31,87 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
   );
 
   return (
-    <Card style={styles.card}>
-      <Card.Content>
-        <Text style={styles.title}>{t('home.todaySummary')}</Text>
+    <View style={styles.wrapper}>
+      <Text style={styles.title}>{t('home.todaySummary')}</Text>
 
-        <View style={styles.grid}>
-          <SummaryItem
-            icon="toilet"
-            label={t('insights.bathroomVisits')}
-            value={`${summary.bowelCount + summary.urinationCount}`}
-            subtitle={
-              summary.incontinenceCount > 0
-                ? `${summary.incontinenceCount} ${t('urination.accident')}`
-                : undefined
-            }
-            color={colors.logBowel}
-            alertColor={summary.incontinenceCount > 0 ? colors.error : undefined}
-          />
-          <SummaryItem
-            icon="cup-water"
-            label={t('insights.fluidIntake')}
-            value={`${summary.fluidTotalMl}`}
-            subtitle={`${fluidPercent}% / ${FLUID_DAILY_TARGET_ML}ml`}
-            color={colors.logUrination}
-          />
-        </View>
-
-        <View style={styles.grid}>
-          <SummaryItem
-            icon="pill"
-            label={t('medication.taken')}
-            value={`${summary.medicationsTaken}`}
-            subtitle={
-              summary.medicationsMissed > 0
-                ? `${summary.medicationsMissed} ${t('medication.missed')}`
-                : undefined
-            }
-            color={colors.logMedication}
-            alertColor={summary.medicationsMissed > 0 ? colors.warning : undefined}
-          />
-          <SummaryItem
-            icon="food-apple"
-            label={t('careLog.meal')}
-            value={`${summary.mealCount}`}
-            color={colors.logMeal}
-          />
-        </View>
-
-        {/* Fluid progress bar */}
-        <View style={styles.progressBarBg}>
-          <View
-            style={[
-              styles.progressBarFill,
-              {
-                width: `${fluidPercent}%`,
-                backgroundColor:
-                  fluidPercent >= 100 ? colors.success : colors.logUrination,
-              },
-            ]}
-          />
-        </View>
-      </Card.Content>
-    </Card>
-  );
-}
-
-function SummaryItem({
-  icon,
-  label,
-  value,
-  subtitle,
-  color,
-  alertColor,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-  subtitle?: string;
-  color: string;
-  alertColor?: string;
-}) {
-  return (
-    <View style={styles.item}>
-      <View style={[styles.iconBg, { backgroundColor: color + '20' }]}>
-        <MaterialCommunityIcons name={icon} size={24} color={color} />
-      </View>
-      <View style={styles.itemText}>
-        <Text style={styles.itemValue}>{value}</Text>
-        <Text style={styles.itemLabel} numberOfLines={1}>
-          {label}
-        </Text>
-        {subtitle && (
-          <Text
-            style={[
-              styles.itemSubtitle,
-              alertColor ? { color: alertColor } : undefined,
-            ]}
-            numberOfLines={1}
-          >
-            {subtitle}
+      <View style={styles.grid}>
+        {/* Bathroom Visits */}
+        <GradientCard
+          gradientColors={logGradients.bowel}
+          style={styles.gridItem}
+        >
+          <MaterialCommunityIcons name="toilet" size={28} color="#FFFFFF" />
+          <Text style={styles.itemValue}>
+            {`${summary.bowelCount + summary.urinationCount}`}
           </Text>
-        )}
+          <Text style={styles.itemLabel} numberOfLines={1}>
+            {t('insights.bathroomVisits')}
+          </Text>
+        </GradientCard>
+
+        {/* Fluid Intake */}
+        <GradientCard
+          gradientColors={logGradients.urination}
+          style={styles.gridItem}
+        >
+          <MaterialCommunityIcons name="cup-water" size={28} color="#FFFFFF" />
+          <Text style={styles.itemValue}>
+            {`${summary.fluidTotalMl}`}
+          </Text>
+          <Text style={styles.itemLabel} numberOfLines={1}>
+            {t('insights.fluidIntake')}
+          </Text>
+        </GradientCard>
+
+        {/* Medication */}
+        <GradientCard
+          gradientColors={logGradients.medication}
+          style={styles.gridItem}
+        >
+          <MaterialCommunityIcons name="pill" size={28} color="#FFFFFF" />
+          <Text style={styles.itemValue}>
+            {`${summary.medicationsTaken}`}
+          </Text>
+          <Text style={styles.itemLabel} numberOfLines={1}>
+            {t('medication.taken')}
+          </Text>
+        </GradientCard>
+
+        {/* Meals */}
+        <GradientCard
+          gradientColors={logGradients.meal}
+          style={styles.gridItem}
+        >
+          <MaterialCommunityIcons name="food-apple" size={28} color="#FFFFFF" />
+          <Text style={styles.itemValue}>
+            {`${summary.mealCount}`}
+          </Text>
+          <Text style={styles.itemLabel} numberOfLines={1}>
+            {t('careLog.meal')}
+          </Text>
+        </GradientCard>
+      </View>
+
+      {/* Fluid progress bar */}
+      <View style={styles.progressBarBg}>
+        <View
+          style={[
+            styles.progressBarFill,
+            {
+              width: `${fluidPercent}%`,
+              backgroundColor:
+                fluidPercent >= 100 ? colors.success : colors.logUrination,
+            },
+          ]}
+        />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+  wrapper: {
     marginBottom: spacing.lg,
-    elevation: 2,
   },
   title: {
     ...typography.subtitle,
@@ -150,46 +120,36 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: 'row',
-    marginBottom: spacing.sm,
-  },
-  item: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  iconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
+  gridItem: {
+    width: '47%',
+    flexGrow: 1,
     alignItems: 'center',
-  },
-  itemText: {
-    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.lg,
+    gap: spacing.xs,
   },
   itemValue: {
     ...typography.data,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   itemLabel: {
     ...typography.caption,
-    color: colors.textSecondary,
-  },
-  itemSubtitle: {
-    ...typography.caption,
-    color: colors.textDisabled,
-    marginTop: 1,
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   progressBarBg: {
-    height: 6,
+    height: 10,
     backgroundColor: colors.surfaceVariant,
-    borderRadius: 3,
-    marginTop: spacing.sm,
+    borderRadius: 5,
+    marginTop: spacing.md,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 5,
   },
 });

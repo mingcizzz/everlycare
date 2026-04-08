@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { LOG_TYPE_CONFIG, type CareLog } from '../../types/careLog';
 import { formatTime } from '../../utils/date';
 
@@ -40,7 +40,7 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
 
       <View style={[styles.content, { borderLeftColor: config.color }]}>
         <View style={styles.headerRow}>
-          <View style={styles.iconBg}>
+          <View style={[styles.iconBg, { backgroundColor: config.color + '20' }]}>
             <MaterialCommunityIcons
               name={config.icon}
               size={18}
@@ -119,9 +119,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     marginTop: 6,
     marginHorizontal: spacing.sm,
   },
@@ -130,7 +130,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
+    ...shadows.sm,
   },
   headerRow: {
     flexDirection: 'row',
@@ -138,8 +139,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconBg: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -152,13 +154,13 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.textSecondary,
     marginTop: spacing.xs,
-    marginLeft: 32,
+    marginLeft: 36,
   },
   notes: {
     ...typography.caption,
     color: colors.textDisabled,
     marginTop: 2,
-    marginLeft: 32,
+    marginLeft: 36,
     fontStyle: 'italic',
   },
 });

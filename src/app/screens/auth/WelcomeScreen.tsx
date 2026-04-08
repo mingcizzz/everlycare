@@ -7,9 +7,11 @@ import {
   Animated,
 } from 'react-native';
 import { Text, Button } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { GradientButton } from '../../../components/ui/GradientCard';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -24,28 +26,32 @@ const SLIDES = [
     icon: 'heart-pulse',
     titleKey: 'onboarding.welcome',
     descKey: 'onboarding.welcomeDesc',
-    color: colors.primary,
+    gradientColors: [colors.primary + '30', colors.primary + '10'],
+    iconColor: colors.primary,
   },
   {
     key: 'track',
     icon: 'notebook-edit-outline',
     titleKey: 'onboarding.track',
     descKey: 'onboarding.trackDesc',
-    color: colors.secondary,
+    gradientColors: [colors.secondary + '30', colors.secondary + '10'],
+    iconColor: colors.secondary,
   },
   {
     key: 'analyze',
     icon: 'chart-line',
     titleKey: 'onboarding.analyze',
     descKey: 'onboarding.analyzeDesc',
-    color: colors.accent,
+    gradientColors: [colors.accent2 + '30', colors.accent2 + '10'],
+    iconColor: colors.accent2,
   },
   {
     key: 'together',
     icon: 'account-group',
     titleKey: 'onboarding.together',
     descKey: 'onboarding.togetherDesc',
-    color: colors.info,
+    gradientColors: [colors.info + '30', colors.info + '10'],
+    iconColor: colors.info,
   },
 ];
 
@@ -70,15 +76,18 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
 
   const renderSlide = ({ item }: { item: (typeof SLIDES)[number] }) => (
     <View style={styles.slide}>
-      <View
-        style={[styles.iconCircle, { backgroundColor: item.color + '15' }]}
+      <LinearGradient
+        colors={item.gradientColors as [string, string]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.iconCircle}
       >
         <MaterialCommunityIcons
           name={item.icon}
           size={80}
-          color={item.color}
+          color={item.iconColor}
         />
-      </View>
+      </LinearGradient>
       <Text style={styles.slideTitle}>{t(item.titleKey)}</Text>
       <Text style={styles.slideDesc}>{t(item.descKey)}</Text>
     </View>
@@ -147,16 +156,11 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           </Button>
         )}
         <View style={{ flex: 1 }} />
-        <Button
-          mode="contained"
+        <GradientButton
+          label={isLast ? t('onboarding.getStarted') : t('common.next')}
           onPress={handleNext}
-          buttonColor={colors.primary}
-          textColor={colors.textOnPrimary}
           style={styles.nextButton}
-          contentStyle={styles.nextButtonContent}
-        >
-          {isLast ? t('onboarding.getStarted') : t('common.next')}
-        </Button>
+        />
       </View>
     </SafeAreaView>
   );
@@ -213,10 +217,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   nextButton: {
-    borderRadius: borderRadius.md,
     minWidth: 120,
-  },
-  nextButtonContent: {
-    paddingVertical: spacing.xs,
   },
 });

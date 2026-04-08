@@ -1,44 +1,58 @@
 export const colors = {
-  primary: '#4A90A4',
-  primaryLight: '#6BAFC4',
-  primaryDark: '#357080',
+  primary: '#FF9E64',
+  primaryLight: '#FFB88C',
+  primaryDark: '#E8844A',
 
-  secondary: '#7BC67E',
-  secondaryLight: '#A3D9A5',
-  secondaryDark: '#5AA05D',
+  secondary: '#4DB6AC',
+  secondaryLight: '#80CBC4',
+  secondaryDark: '#00897B',
 
-  accent: '#F5A623',
+  accent: '#FFB84D',
   accentLight: '#FFCA6A',
-  accentDark: '#D48A00',
+  accentDark: '#F5A623',
+  accent2: '#7C4DFF',
 
-  error: '#E74C3C',
-  errorLight: '#F5A0A0',
+  error: '#EF5350',
+  errorLight: '#FFCDD2',
+  warning: '#FFA726',
+  success: '#66BB6A',
+  info: '#42A5F5',
 
-  warning: '#F39C12',
-  success: '#27AE60',
-  info: '#3498DB',
-
-  background: '#F8F9FA',
+  background: '#FAFAF8',
   surface: '#FFFFFF',
-  surfaceVariant: '#F0F2F5',
+  surfaceVariant: '#F5F0EB',
 
-  textPrimary: '#2C3E50',
-  textSecondary: '#7F8C8D',
-  textDisabled: '#BDC3C7',
+  textPrimary: '#1A237E',
+  textSecondary: '#5C6BC0',
+  textDisabled: '#9E9E9E',
   textOnPrimary: '#FFFFFF',
+  textOnGradient: '#FFFFFF',
 
-  border: '#E8EAED',
-  divider: '#ECEFF1',
+  border: '#E0D6CC',
+  divider: '#EDE7E0',
 
-  // Log type colors
-  logBowel: '#8B6914',
-  logUrination: '#2980B9',
-  logMeal: '#E67E22',
-  logMedication: '#9B59B6',
-  logMood: '#F1C40F',
-  logHygiene: '#1ABC9C',
-  logActivity: '#E74C3C',
-  logNote: '#95A5A6',
+  gradientStart: '#FF9E64',
+  gradientEnd: '#F4A460',
+
+  logBowel: '#8D6E63',
+  logUrination: '#42A5F5',
+  logMeal: '#FFA726',
+  logMedication: '#AB47BC',
+  logMood: '#FFC107',
+  logHygiene: '#26C6DA',
+  logActivity: '#EF5350',
+  logNote: '#78909C',
 } as const;
+
+export const logGradients: Record<string, [string, string]> = {
+  bowel: ['#8D6E63', '#A1887F'],
+  urination: ['#42A5F5', '#64B5F6'],
+  meal: ['#FFA726', '#FFB74D'],
+  medication: ['#AB47BC', '#CE93D8'],
+  mood: ['#FFC107', '#FFD54F'],
+  hygiene: ['#26C6DA', '#4DD0E1'],
+  activity: ['#EF5350', '#E57373'],
+  note: ['#78909C', '#90A4AE'],
+};
 
 export type ColorToken = keyof typeof colors;

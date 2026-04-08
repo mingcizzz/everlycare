@@ -5,13 +5,16 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { Text, FAB } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { GradientCard } from '../../../components/ui/GradientCard';
 import { DailySummaryCard } from '../../../components/log/DailySummaryCard';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
 import { getToday } from '../../../utils/date';
@@ -51,15 +54,18 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           <RefreshControl refreshing={isLoading} onRefresh={refresh} />
         }
       >
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Hero Header */}
+        <GradientCard
+          gradientColors={[colors.gradientStart, colors.gradientEnd]}
+          style={styles.heroCard}
+        >
           <Text style={styles.greeting}>{greeting}</Text>
           {activeRecipient && (
             <Text style={styles.caringFor}>
               {t('home.caringFor', { name: activeRecipient.name })}
             </Text>
           )}
-        </View>
+        </GradientCard>
 
         {/* Summary */}
         {dailySummary && <DailySummaryCard summary={dailySummary} />}
@@ -71,13 +77,22 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         </View>
       </ScrollView>
 
-      <FAB
-        icon="plus"
-        label={t('home.quickLog')}
-        onPress={() => navigation.navigate('Log')}
-        style={styles.fab}
-        color={colors.textOnPrimary}
-      />
+      {/* Gradient FAB */}
+      <View style={styles.fabContainer}>
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.fab}
+        >
+          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
+          <Text style={styles.fabLabel}>{t('home.quickLog')}</Text>
+        </LinearGradient>
+        <View
+          style={StyleSheet.absoluteFill}
+          onTouchEnd={() => navigation.navigate('Log')}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -91,16 +106,18 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: 100,
   },
-  header: {
+  heroCard: {
     marginBottom: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: borderRadius.xl,
   },
   greeting: {
     ...typography.h2,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   caringFor: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.85)',
     marginTop: spacing.xs,
   },
   sectionTitle: {
@@ -111,11 +128,22 @@ const styles = StyleSheet.create({
   timelineSection: {
     marginBottom: spacing.lg,
   },
-  fab: {
+  fabContainer: {
     position: 'absolute',
     right: spacing.md,
     bottom: spacing.xl,
-    backgroundColor: colors.primary,
+    ...shadows.lg,
+  },
+  fab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.xl,
+    gap: spacing.sm,
+  },
+  fabLabel: {
+    ...typography.subtitle,
+    color: '#FFFFFF',
   },
 });

@@ -7,13 +7,14 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { Text, TextInput, Button, Chip, Avatar, IconButton } from 'react-native-paper';
+import { Text, TextInput, Chip, Avatar, IconButton } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { recipientService } from '../../../services/recipient.service';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { GradientCard, GradientButton } from '../../../components/ui/GradientCard';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
 const COMMON_CONDITIONS = [
@@ -109,13 +110,18 @@ export function CareRecipientProfileScreen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.avatarContainer}>
-            <Avatar.Text
-              size={80}
-              label={name.charAt(0) || '?'}
-              style={{ backgroundColor: colors.primary }}
-            />
-          </View>
+          {/* Avatar section wrapped in GradientCard */}
+          <GradientCard style={styles.avatarCard}>
+            <View style={styles.avatarContainer}>
+              <Avatar.Text
+                size={80}
+                label={name.charAt(0) || '?'}
+                style={{ backgroundColor: '#FFFFFF' }}
+                color={colors.primary}
+              />
+              <Text style={styles.avatarName}>{name || '?'}</Text>
+            </View>
+          </GradientCard>
 
           <View style={styles.form}>
             <TextInput
@@ -133,14 +139,26 @@ export function CareRecipientProfileScreen({
               <Chip
                 selected={gender === 'male'}
                 onPress={() => setGender('male')}
-                style={styles.chip}
+                style={[
+                  styles.chip,
+                  gender === 'male' && {
+                    backgroundColor: colors.primary,
+                  },
+                ]}
+                textStyle={gender === 'male' ? { color: '#FFFFFF' } : undefined}
               >
                 {t('recipient.male')}
               </Chip>
               <Chip
                 selected={gender === 'female'}
                 onPress={() => setGender('female')}
-                style={styles.chip}
+                style={[
+                  styles.chip,
+                  gender === 'female' && {
+                    backgroundColor: colors.primary,
+                  },
+                ]}
+                textStyle={gender === 'female' ? { color: '#FFFFFF' } : undefined}
               >
                 {t('recipient.female')}
               </Chip>
@@ -161,16 +179,25 @@ export function CareRecipientProfileScreen({
               {t('recipient.medicalConditions')}
             </Text>
             <View style={styles.chipRow}>
-              {COMMON_CONDITIONS.map((c) => (
-                <Chip
-                  key={c}
-                  selected={conditions.includes(c)}
-                  onPress={() => toggleCondition(c)}
-                  style={styles.chip}
-                >
-                  {c}
-                </Chip>
-              ))}
+              {COMMON_CONDITIONS.map((c) => {
+                const isSelected = conditions.includes(c);
+                return (
+                  <Chip
+                    key={c}
+                    selected={isSelected}
+                    onPress={() => toggleCondition(c)}
+                    style={[
+                      styles.chip,
+                      isSelected && {
+                        backgroundColor: colors.secondary,
+                      },
+                    ]}
+                    textStyle={isSelected ? { color: '#FFFFFF' } : undefined}
+                  >
+                    {c}
+                  </Chip>
+                );
+              })}
             </View>
 
             <TextInput
@@ -196,18 +223,13 @@ export function CareRecipientProfileScreen({
               activeOutlineColor={colors.primary}
             />
 
-            <Button
-              mode="contained"
+            <GradientButton
+              label={t('common.save')}
               onPress={handleSave}
               loading={isLoading}
               disabled={isLoading || !name}
-              style={styles.button}
-              buttonColor={colors.primary}
-              textColor={colors.textOnPrimary}
-              contentStyle={styles.buttonContent}
-            >
-              {t('common.save')}
-            </Button>
+              style={styles.saveButton}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -239,9 +261,18 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
   },
+  avatarCard: {
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
   avatarContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  avatarName: {
+    ...typography.h3,
+    color: '#FFFFFF',
   },
   form: {
     gap: spacing.md,
@@ -261,12 +292,10 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginBottom: spacing.xs,
+    borderRadius: borderRadius.full,
   },
-  button: {
+  saveButton: {
     marginTop: spacing.lg,
-    borderRadius: borderRadius.md,
-  },
-  buttonContent: {
-    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.xl,
   },
 });

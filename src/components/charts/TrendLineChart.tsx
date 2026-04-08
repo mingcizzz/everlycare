@@ -32,7 +32,7 @@ export function TrendLineChart({
       {
         data: data.map((d) => d.value),
         color: (opacity = 1) => hexWithOpacity(lineColor, opacity),
-        strokeWidth: 3,
+        strokeWidth: 4,
       },
     ],
   };
@@ -53,10 +53,12 @@ export function TrendLineChart({
           labelColor: (opacity = 1) => hexWithOpacity(colors.textSecondary, opacity),
           style: { borderRadius: borderRadius.md },
           propsForDots: {
-            r: '4',
+            r: '5',
             strokeWidth: '2',
             stroke: lineColor,
           },
+          fillShadowGradient: lineColor,
+          fillShadowGradientOpacity: 0.15,
         }}
         bezier
         style={styles.chart}

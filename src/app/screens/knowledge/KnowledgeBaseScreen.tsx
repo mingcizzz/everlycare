@@ -4,7 +4,7 @@ import { Text, Card, ActivityIndicator } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { knowledgeService, type Article } from '../../../services/knowledge.service';
 import type { MainTabScreenProps } from '../../../types/navigation';
@@ -62,7 +62,10 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
         <TouchableOpacity
           style={[
             styles.categoryChip,
-            !selectedCategory && styles.categoryChipActive,
+            !selectedCategory && {
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            },
           ]}
           onPress={() => setSelectedCategory(null)}
         >
@@ -81,13 +84,19 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
           return (
             <TouchableOpacity
               key={cat}
-              style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+              style={[
+                styles.categoryChip,
+                isActive && {
+                  backgroundColor: meta.color,
+                  borderColor: meta.color,
+                },
+              ]}
               onPress={() => setSelectedCategory(cat)}
             >
               <MaterialCommunityIcons
                 name={meta.icon}
                 size={16}
-                color={isActive ? colors.textOnPrimary : meta.color}
+                color={isActive ? '#FFFFFF' : meta.color}
               />
               <Text
                 style={[
@@ -113,7 +122,7 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
             <Card.Content style={styles.emptyContent}>
               <MaterialCommunityIcons
                 name="book-open-page-variant"
-                size={48}
+                size={80}
                 color={colors.textDisabled}
               />
               <Text style={styles.emptyText}>{t('common.noData')}</Text>
@@ -139,7 +148,12 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
                   navigation.navigate('ArticleDetail', { articleId: article.id })
                 }
               >
-                <Card style={styles.articleCard}>
+                <Card
+                  style={[
+                    styles.articleCard,
+                    { borderLeftWidth: 4, borderLeftColor: meta.color },
+                  ]}
+                >
                   <Card.Content style={styles.articleContent}>
                     <View
                       style={[
@@ -201,17 +215,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  categoryChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
   categoryChipText: {
     ...typography.caption,
     color: colors.textPrimary,
     fontWeight: '500',
   },
   categoryChipTextActive: {
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
   },
   content: {
     padding: spacing.md,
@@ -221,6 +231,7 @@ const styles = StyleSheet.create({
   articleCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    ...shadows.sm,
   },
   articleContent: {
     flexDirection: 'row',

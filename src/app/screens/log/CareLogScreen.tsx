@@ -3,18 +3,17 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
-import { Text, Card } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, logGradients } from '../../../theme';
 import { LOG_TYPE_CONFIG, type LogType } from '../../../types/careLog';
-import { useCareLogStore } from '../../../store/careLogStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import type { MainTabScreenProps } from '../../../types/navigation';
+import { GradientCard } from '../../../components/ui/GradientCard';
 import { QuickLogSheet } from './QuickLogSheet';
 
 export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
@@ -60,27 +59,21 @@ export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
       <ScrollView contentContainerStyle={styles.grid}>
         {logTypes.map((type) => {
           const config = LOG_TYPE_CONFIG[type];
+          const gradient = logGradients[type] || [config.color, config.color];
           return (
-            <TouchableOpacity
+            <GradientCard
               key={type}
+              gradientColors={gradient}
               style={styles.logCard}
               onPress={() => setSelectedLogType(type)}
-              activeOpacity={0.7}
             >
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: config.color + '15' },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name={config.icon}
-                  size={32}
-                  color={config.color}
-                />
-              </View>
+              <MaterialCommunityIcons
+                name={config.icon}
+                size={40}
+                color="#FFFFFF"
+              />
               <Text style={styles.logLabel}>{t(config.labelKey)}</Text>
-            </TouchableOpacity>
+            </GradientCard>
           );
         })}
       </ScrollView>
@@ -126,27 +119,14 @@ const styles = StyleSheet.create({
   },
   logCard: {
     width: '47%',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     alignItems: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+    gap: spacing.sm,
   },
   logLabel: {
     ...typography.subtitle,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   emptyContainer: {
     flex: 1,

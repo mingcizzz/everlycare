@@ -11,10 +11,10 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4A90A4"
+      "backgroundColor": "#FF9E64"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.everlycare.app",
       "infoPlist": {
         "NSCameraUsageDescription": "EverlyCare needs camera access to take photos for care recipient profiles.",
@@ -26,7 +26,7 @@
       "package": "com.everlycare.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#4A90A4"
+        "backgroundColor": "#FF9E64"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -43,7 +43,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#4A90A4"
+          "color": "#FF9E64"
         }
       ],
       "expo-localization"
@@ -55,7 +55,7 @@
     },
     "description": "A bilingual caregiving app for family caregivers of elderly Alzheimer's patients. Track daily care routines, medications, meals, and more.",
     "githubUrl": "https://github.com/mingcizzz/everlycare",
-    "primaryColor": "#4A90A4",
+    "primaryColor": "#FF9E64",
     "owner": "lanqianlong"
   }
 }

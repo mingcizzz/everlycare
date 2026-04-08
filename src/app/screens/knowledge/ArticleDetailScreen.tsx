@@ -78,8 +78,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   content: {
     padding: spacing.lg,
@@ -93,7 +91,7 @@ const styles = StyleSheet.create({
   body: {
     ...typography.body,
     color: colors.textPrimary,
-    lineHeight: 28,
+    lineHeight: 30,
   },
   loading: {
     flex: 1,

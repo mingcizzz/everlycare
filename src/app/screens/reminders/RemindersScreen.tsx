@@ -7,13 +7,14 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import { Text, Card, Switch, FAB, IconButton } from 'react-native-paper';
+import { Text, Card, Switch, IconButton } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useReminderStore } from '../../../store/reminderStore';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import type { Reminder } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
@@ -99,7 +100,7 @@ export function RemindersScreen({ navigation }: RootStackScreenProps<'Reminders'
             <Card.Content style={styles.emptyContent}>
               <MaterialCommunityIcons
                 name="bell-off-outline"
-                size={48}
+                size={80}
                 color={colors.textDisabled}
               />
               <Text style={styles.emptyText}>{t('common.noData')}</Text>
@@ -150,12 +151,20 @@ export function RemindersScreen({ navigation }: RootStackScreenProps<'Reminders'
         )}
       </ScrollView>
 
-      <FAB
-        icon="plus"
+      <TouchableOpacity
         onPress={() => navigation.navigate('ReminderForm', {})}
+        activeOpacity={0.8}
         style={styles.fab}
-        color={colors.textOnPrimary}
-      />
+      >
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.fabGradient}
+        >
+          <MaterialCommunityIcons name="plus" size={28} color={colors.textOnPrimary} />
+        </LinearGradient>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -171,8 +180,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+    ...shadows.sm,
   },
   headerTitle: {
     ...typography.h3,
@@ -186,6 +195,7 @@ const styles = StyleSheet.create({
   reminderCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    ...shadows.md,
   },
   reminderContent: {
     flexDirection: 'row',
@@ -193,8 +203,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   iconBg: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
@@ -233,7 +243,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.md,
     bottom: spacing.xl,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.full,
+    ...shadows.lg,
+  },
+  fabGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

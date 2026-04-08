@@ -6,8 +6,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { GradientCard } from '../../../components/ui/GradientCard';
 import type { MainTabScreenProps } from '../../../types/navigation';
+
+const ICON_COLORS: Record<string, string> = {
+  translate: colors.accent2,
+  'bell-outline': colors.primary,
+  pill: '#AB47BC',
+  'account-group-outline': colors.secondary,
+  'account-heart-outline': '#E74C3C',
+};
 
 export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   const { t } = useTranslation();
@@ -16,22 +25,62 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
 
   const isEnglish = language === 'en';
 
+  const renderSettingRow = (
+    iconName: string,
+    label: string,
+    onPress?: () => void,
+    trailing?: React.ReactNode
+  ) => {
+    const iconColor = ICON_COLORS[iconName] || colors.textSecondary;
+    const row = (
+      <View style={styles.settingRow}>
+        <View style={styles.settingLeft}>
+          <View style={[styles.iconCircle, { backgroundColor: iconColor + '20' }]}>
+            <MaterialCommunityIcons
+              name={iconName}
+              size={20}
+              color={iconColor}
+            />
+          </View>
+          <Text style={styles.settingLabel}>{label}</Text>
+        </View>
+        {trailing || (
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={24}
+            color={colors.textSecondary}
+          />
+        )}
+      </View>
+    );
+
+    if (onPress) {
+      return (
+        <TouchableOpacity onPress={onPress}>
+          {row}
+        </TouchableOpacity>
+      );
+    }
+    return row;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         {/* Profile Card */}
-        <Card style={styles.profileCard}>
-          <Card.Content style={styles.profileContent}>
+        <GradientCard style={styles.profileCard}>
+          <View style={styles.profileContent}>
             <Avatar.Text
               size={64}
               label={user?.displayName?.charAt(0) || '?'}
-              style={{ backgroundColor: colors.primary }}
+              style={{ backgroundColor: '#FFFFFF' }}
+              color={colors.primary}
             />
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
                 {user?.displayName || 'User'}
               </Text>
-              <Text style={styles.profileEmail}>{t('careTeam.primary')}</Text>
+              <Text style={styles.profileRole}>{t('careTeam.primary')}</Text>
               {user?.id && (
                 <TouchableOpacity
                   onPress={() => {
@@ -45,8 +94,8 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
                 </TouchableOpacity>
               )}
             </View>
-          </Card.Content>
-        </Card>
+          </View>
+        </GradientCard>
 
         {/* Settings */}
         <Card style={styles.settingsCard}>
@@ -54,109 +103,41 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
             <Text style={styles.sectionTitle}>{t('common.settings')}</Text>
 
             {/* Language Toggle */}
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <MaterialCommunityIcons
-                  name="translate"
-                  size={24}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.settingLabel}>English</Text>
-              </View>
+            {renderSettingRow('translate', 'English', undefined, (
               <Switch
                 value={isEnglish}
                 onValueChange={(v) => setLanguage(v ? 'en' : 'zh-CN')}
                 color={colors.primary}
               />
-            </View>
+            ))}
 
             <Divider style={styles.divider} />
 
             {/* Reminders */}
-            <TouchableOpacity
-              style={styles.settingRow}
-              onPress={() => navigation.navigate('Reminders')}
-            >
-              <View style={styles.settingLeft}>
-                <MaterialCommunityIcons
-                  name="bell-outline"
-                  size={24}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.settingLabel}>{t('reminders.title')}</Text>
-              </View>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
+            {renderSettingRow('bell-outline', t('reminders.title'), () =>
+              navigation.navigate('Reminders')
+            )}
 
             <Divider style={styles.divider} />
 
             {/* Medications */}
-            <TouchableOpacity
-              style={styles.settingRow}
-              onPress={() => navigation.navigate('Medications')}
-            >
-              <View style={styles.settingLeft}>
-                <MaterialCommunityIcons
-                  name="pill"
-                  size={24}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.settingLabel}>{t('medication.title')}</Text>
-              </View>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
+            {renderSettingRow('pill', t('medication.title'), () =>
+              navigation.navigate('Medications')
+            )}
 
             <Divider style={styles.divider} />
 
             {/* Care Team */}
-            <TouchableOpacity
-              style={styles.settingRow}
-              onPress={() => navigation.navigate('CareTeam')}
-            >
-              <View style={styles.settingLeft}>
-                <MaterialCommunityIcons
-                  name="account-group-outline"
-                  size={24}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.settingLabel}>{t('careTeam.title')}</Text>
-              </View>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
+            {renderSettingRow('account-group-outline', t('careTeam.title'), () =>
+              navigation.navigate('CareTeam')
+            )}
 
             <Divider style={styles.divider} />
 
             {/* Care Recipient */}
-            <TouchableOpacity
-              style={styles.settingRow}
-              onPress={() => navigation.navigate('CareRecipientProfile', {})}
-            >
-              <View style={styles.settingLeft}>
-                <MaterialCommunityIcons
-                  name="account-heart-outline"
-                  size={24}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.settingLabel}>{t('recipient.title')}</Text>
-              </View>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
+            {renderSettingRow('account-heart-outline', t('recipient.title'), () =>
+              navigation.navigate('CareRecipientProfile', {})
+            )}
           </Card.Content>
         </Card>
 
@@ -185,8 +166,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   profileCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
   },
   profileContent: {
     flexDirection: 'row',
@@ -198,20 +179,23 @@ const styles = StyleSheet.create({
   },
   profileName: {
     ...typography.h3,
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
-  profileEmail: {
+  profileRole: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
+    color: '#FFFFFF',
+    opacity: 0.85,
   },
   userId: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: '#FFFFFF',
+    opacity: 0.7,
     marginTop: spacing.xs,
   },
   settingsCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    ...shadows.sm,
   },
   sectionTitle: {
     ...typography.subtitle,
@@ -229,6 +213,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   settingLabel: {
     ...typography.body,
     color: colors.textPrimary,
@@ -242,7 +233,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     padding: spacing.md,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.error + '26',
     borderRadius: borderRadius.lg,
   },
   logoutText: {

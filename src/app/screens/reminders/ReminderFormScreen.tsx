@@ -14,7 +14,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useReminderStore } from '../../../store/reminderStore';
 import { reminderService } from '../../../services/reminder.service';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { GradientButton } from '../../../components/ui/GradientCard';
 import type { Reminder, ReminderSchedule } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
@@ -260,18 +261,13 @@ export function ReminderFormScreen({
             </Text>
           </View>
 
-          <Button
-            mode="contained"
+          <GradientButton
+            label={t('common.save')}
             onPress={handleSave}
             loading={isLoading}
             disabled={isLoading || !title.trim()}
-            style={styles.button}
-            buttonColor={colors.primary}
-            textColor={colors.textOnPrimary}
-            contentStyle={styles.buttonContent}
-          >
-            {t('common.save')}
-          </Button>
+            style={styles.gradientButton}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -292,8 +288,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+    ...shadows.sm,
   },
   headerTitle: {
     ...typography.h3,
@@ -317,6 +313,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginBottom: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   timeInputRow: {
     flexDirection: 'row',
@@ -333,17 +330,15 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     gap: spacing.sm,
     alignItems: 'flex-start',
+    borderLeftWidth: 4,
+    borderLeftColor: colors.info,
   },
   infoText: {
     ...typography.caption,
     color: colors.info,
     flex: 1,
   },
-  button: {
+  gradientButton: {
     marginTop: spacing.lg,
-    borderRadius: borderRadius.md,
-  },
-  buttonContent: {
-    paddingVertical: spacing.sm,
   },
 });

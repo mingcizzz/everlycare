@@ -7,12 +7,13 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { Text, TextInput, Button, Chip } from 'react-native-paper';
+import { Text, TextInput, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { GradientButton } from '../../../components/ui/GradientCard';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -152,18 +153,13 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               activeOutlineColor={colors.primary}
             />
 
-            <Button
-              mode="contained"
+            <GradientButton
+              label={t('onboarding.getStarted')}
               onPress={handleComplete}
               loading={isLoading}
               disabled={isLoading || !name}
-              style={styles.button}
-              buttonColor={colors.primary}
-              textColor={colors.textOnPrimary}
-              contentStyle={styles.buttonContent}
-            >
-              {t('onboarding.getStarted')}
-            </Button>
+              style={styles.gradientButton}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -217,12 +213,9 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginBottom: spacing.xs,
+    borderRadius: borderRadius.full,
   },
-  button: {
+  gradientButton: {
     marginTop: spacing.lg,
-    borderRadius: borderRadius.md,
-  },
-  buttonContent: {
-    paddingVertical: spacing.sm,
   },
 });

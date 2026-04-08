@@ -7,13 +7,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Text, TextInput, Button, Chip, IconButton, Card } from 'react-native-paper';
+import { Text, TextInput, Chip, IconButton, Card } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { careTeamService } from '../../../services/careteam.service';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { GradientButton } from '../../../components/ui/GradientCard';
 import type { CareTeamMember } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
@@ -124,19 +125,14 @@ export function InviteMemberScreen({ navigation }: RootStackScreenProps<'InviteM
             </Text>
           </View>
 
-          <Button
-            mode="contained"
+          <GradientButton
+            label={t('careTeam.inviteMember')}
             onPress={handleInvite}
+            icon="account-plus"
             loading={isLoading}
             disabled={isLoading || !userId.trim()}
-            style={styles.button}
-            buttonColor={colors.primary}
-            textColor={colors.textOnPrimary}
-            contentStyle={styles.buttonContent}
-            icon="account-plus"
-          >
-            {t('careTeam.inviteMember')}
-          </Button>
+            style={styles.gradientButton}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -157,8 +153,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+    ...shadows.sm,
   },
   headerTitle: {
     ...typography.h3,
@@ -171,7 +167,7 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: colors.info + '10',
     borderRadius: borderRadius.md,
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
     borderLeftColor: colors.info,
   },
   infoContent: {
@@ -198,6 +194,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginBottom: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   roleDescription: {
     flexDirection: 'row',
@@ -212,11 +209,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     flex: 1,
   },
-  button: {
+  gradientButton: {
     marginTop: spacing.lg,
-    borderRadius: borderRadius.md,
-  },
-  buttonContent: {
-    paddingVertical: spacing.sm,
   },
 });

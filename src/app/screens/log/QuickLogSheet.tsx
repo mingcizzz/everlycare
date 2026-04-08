@@ -3,15 +3,16 @@ import {
   View,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   Pressable,
   ScrollView,
 } from 'react-native';
-import { Text, TextInput, Button, SegmentedButtons, Chip } from 'react-native-paper';
+import { Text, TextInput, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 import { useCareLogStore } from '../../../store/careLogStore';
+import { GradientButton } from '../../../components/ui/GradientCard';
 import type { LogType, LogData } from '../../../types/careLog';
 
 interface QuickLogSheetProps {
@@ -102,7 +103,10 @@ export function QuickLogSheet({
       case 'bowel':
         return (
           <>
-            <Text style={styles.fieldLabel}>{t('bowel.type')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logBowel }]} />
+              <Text style={styles.fieldLabel}>{t('bowel.type')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['normal', 'diarrhea', 'constipation'] as const).map((v) => (
                 <Chip
@@ -116,7 +120,10 @@ export function QuickLogSheet({
               ))}
             </View>
 
-            <Text style={styles.fieldLabel}>{t('bowel.location')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logBowel }]} />
+              <Text style={styles.fieldLabel}>{t('bowel.location')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['toilet', 'diaper', 'other'] as const).map((v) => (
                 <Chip
@@ -144,7 +151,10 @@ export function QuickLogSheet({
       case 'urination':
         return (
           <>
-            <Text style={styles.fieldLabel}>{t('urination.title')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logUrination }]} />
+              <Text style={styles.fieldLabel}>{t('urination.title')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['planned', 'spontaneous', 'accident'] as const).map((v) => (
                 <Chip
@@ -158,7 +168,10 @@ export function QuickLogSheet({
               ))}
             </View>
 
-            <Text style={styles.fieldLabel}>{t('urination.volume')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logUrination }]} />
+              <Text style={styles.fieldLabel}>{t('urination.volume')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['small', 'medium', 'large'] as const).map((v) => (
                 <Chip
@@ -177,7 +190,10 @@ export function QuickLogSheet({
       case 'meal':
         return (
           <>
-            <Text style={styles.fieldLabel}>{t('meal.title')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMeal }]} />
+              <Text style={styles.fieldLabel}>{t('meal.title')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['breakfast', 'lunch', 'dinner', 'snack', 'fluid'] as const).map((v) => (
                 <Chip
@@ -209,7 +225,10 @@ export function QuickLogSheet({
                   mode="outlined"
                   style={styles.input}
                 />
-                <Text style={styles.fieldLabel}>{t('meal.appetite')}</Text>
+                <View style={styles.fieldLabelRow}>
+                  <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMeal }]} />
+                  <Text style={styles.fieldLabel}>{t('meal.appetite')}</Text>
+                </View>
                 <View style={styles.chipRow}>
                   {(['good', 'fair', 'poor'] as const).map((v) => (
                     <Chip
@@ -255,7 +274,10 @@ export function QuickLogSheet({
       case 'mood':
         return (
           <>
-            <Text style={styles.fieldLabel}>{t('mood.title')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMood }]} />
+              <Text style={styles.fieldLabel}>{t('mood.title')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['calm', 'happy', 'anxious', 'agitated', 'confused', 'sad'] as const).map((v) => (
                 <Chip
@@ -269,7 +291,10 @@ export function QuickLogSheet({
               ))}
             </View>
 
-            <Text style={styles.fieldLabel}>{t('mood.sleepQuality')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMood }]} />
+              <Text style={styles.fieldLabel}>{t('mood.sleepQuality')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['good', 'fair', 'poor'] as const).map((v) => (
                 <Chip
@@ -288,7 +313,10 @@ export function QuickLogSheet({
       case 'hygiene':
         return (
           <>
-            <Text style={styles.fieldLabel}>{t('hygiene.title')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logHygiene }]} />
+              <Text style={styles.fieldLabel}>{t('hygiene.title')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['bathing', 'clothingChange', 'skinCheck', 'oralCare'] as const).map((v) => (
                 <Chip
@@ -307,7 +335,10 @@ export function QuickLogSheet({
       case 'activity':
         return (
           <>
-            <Text style={styles.fieldLabel}>{t('activity.title')}</Text>
+            <View style={styles.fieldLabelRow}>
+              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logActivity }]} />
+              <Text style={styles.fieldLabel}>{t('activity.title')}</Text>
+            </View>
             <View style={styles.chipRow}>
               {(['walking', 'exercise', 'social', 'cognitive', 'rest'] as const).map((v) => (
                 <Chip
@@ -348,7 +379,14 @@ export function QuickLogSheet({
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onDismiss} />
         <View style={styles.sheet}>
-          <View style={styles.handle} />
+          <View style={styles.handleContainer}>
+            <LinearGradient
+              colors={[colors.gradientStart, colors.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.handle}
+            />
+          </View>
           <ScrollView style={styles.sheetContent} keyboardShouldPersistTaps="handled">
             <Text style={styles.sheetTitle}>
               {t(`careLog.${logType}`)}
@@ -366,18 +404,13 @@ export function QuickLogSheet({
               style={[styles.input, { marginTop: spacing.md }]}
             />
 
-            <Button
-              mode="contained"
+            <GradientButton
+              label={t('common.save')}
               onPress={handleSave}
               loading={isLoading}
               disabled={isLoading}
               style={styles.saveButton}
-              buttonColor={colors.primary}
-              textColor={colors.textOnPrimary}
-              contentStyle={styles.saveButtonContent}
-            >
-              {t('common.save')}
-            </Button>
+            />
           </ScrollView>
         </View>
       </View>
@@ -401,14 +434,15 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
     paddingBottom: spacing.xl,
   },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: colors.border,
-    borderRadius: 2,
-    alignSelf: 'center',
+  handleContainer: {
+    alignItems: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
+  },
+  handle: {
+    width: 60,
+    height: 4,
+    borderRadius: 2,
   },
   sheetContent: {
     paddingHorizontal: spacing.lg,
@@ -418,11 +452,21 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
+  fieldLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  fieldLabelBorder: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+  },
   fieldLabel: {
     ...typography.subtitle,
     color: colors.textPrimary,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
   },
   chipRow: {
     flexDirection: 'row',
@@ -431,15 +475,13 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginBottom: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   input: {
     backgroundColor: colors.surface,
   },
   saveButton: {
     marginTop: spacing.lg,
-    borderRadius: borderRadius.md,
-  },
-  saveButtonContent: {
-    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.xl,
   },
 });

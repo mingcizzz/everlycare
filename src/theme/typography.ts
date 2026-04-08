@@ -20,9 +20,9 @@ const fontFamily = Platform.select({
 
 export const typography = {
   h1: {
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 36,
+    fontSize: 32,
+    fontWeight: '800',
+    lineHeight: 40,
     fontFamily: fontFamily?.bold,
   } as TextStyle,
 
@@ -35,14 +35,14 @@ export const typography = {
 
   h3: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     lineHeight: 28,
     fontFamily: fontFamily?.bold,
   } as TextStyle,
 
   subtitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     lineHeight: 24,
     fontFamily: fontFamily?.bold,
   } as TextStyle,
@@ -70,15 +70,22 @@ export const typography = {
 
   data: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '700',
     lineHeight: 24,
     fontFamily: fontFamily?.mono,
   } as TextStyle,
 
   dataLarge: {
-    fontSize: 24,
-    fontWeight: '700',
-    lineHeight: 32,
+    fontSize: 28,
+    fontWeight: '800',
+    lineHeight: 36,
+    fontFamily: fontFamily?.mono,
+  } as TextStyle,
+
+  dataXL: {
+    fontSize: 36,
+    fontWeight: '800',
+    lineHeight: 44,
     fontFamily: fontFamily?.mono,
   } as TextStyle,
 } as const;

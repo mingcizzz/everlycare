@@ -12,7 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { medicationService } from '../../../services/medication.service';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { GradientButton } from '../../../components/ui/GradientCard';
 import type { Medication } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
@@ -194,18 +195,13 @@ export function MedicationFormScreen({
             </Button>
           </View>
 
-          <Button
-            mode="contained"
+          <GradientButton
+            label={t('common.save')}
             onPress={handleSave}
             loading={isLoading}
             disabled={isLoading || !name.trim()}
-            style={styles.button}
-            buttonColor={colors.primary}
-            textColor={colors.textOnPrimary}
-            contentStyle={styles.buttonContent}
-          >
-            {t('common.save')}
-          </Button>
+            style={styles.gradientButton}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -226,8 +222,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
+    ...shadows.sm,
   },
   headerTitle: {
     ...typography.h3,
@@ -251,6 +247,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     marginBottom: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   timeInputRow: {
     flexDirection: 'row',
@@ -260,11 +257,7 @@ const styles = StyleSheet.create({
   addTimeButton: {
     borderRadius: borderRadius.md,
   },
-  button: {
+  gradientButton: {
     marginTop: spacing.lg,
-    borderRadius: borderRadius.md,
-  },
-  buttonContent: {
-    paddingVertical: spacing.sm,
   },
 });

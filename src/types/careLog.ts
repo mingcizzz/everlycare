@@ -83,12 +83,12 @@ export const LOG_TYPE_CONFIG: Record<
   LogType,
   { icon: string; labelKey: string; color: string }
 > = {
-  bowel: { icon: 'toilet', labelKey: 'careLog.bowel', color: '#8B6914' },
-  urination: { icon: 'water', labelKey: 'careLog.urination', color: '#2980B9' },
-  meal: { icon: 'food-apple', labelKey: 'careLog.meal', color: '#E67E22' },
-  medication: { icon: 'pill', labelKey: 'careLog.medication', color: '#9B59B6' },
-  mood: { icon: 'emoticon-outline', labelKey: 'careLog.mood', color: '#F1C40F' },
-  hygiene: { icon: 'shower-head', labelKey: 'careLog.hygiene', color: '#1ABC9C' },
-  activity: { icon: 'walk', labelKey: 'careLog.activity', color: '#E74C3C' },
-  note: { icon: 'note-text', labelKey: 'careLog.note', color: '#95A5A6' },
+  bowel: { icon: 'toilet', labelKey: 'careLog.bowel', color: '#8D6E63' },
+  urination: { icon: 'water', labelKey: 'careLog.urination', color: '#42A5F5' },
+  meal: { icon: 'food-apple', labelKey: 'careLog.meal', color: '#FFA726' },
+  medication: { icon: 'pill', labelKey: 'careLog.medication', color: '#AB47BC' },
+  mood: { icon: 'emoticon-outline', labelKey: 'careLog.mood', color: '#FFC107' },
+  hygiene: { icon: 'shower-head', labelKey: 'careLog.hygiene', color: '#26C6DA' },
+  activity: { icon: 'walk', labelKey: 'careLog.activity', color: '#EF5350' },
+  note: { icon: 'note-text', labelKey: 'careLog.note', color: '#78909C' },
 };

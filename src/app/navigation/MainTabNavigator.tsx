@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { MainTabParamList } from '../../types/navigation';
-import { colors } from '../../theme';
+import { colors, shadows } from '../../theme';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { CareLogScreen } from '../screens/log/CareLogScreen';
 import { InsightsScreen } from '../screens/insights/InsightsScreen';
@@ -12,12 +12,12 @@ import { SettingsScreen } from '../screens/profile/SettingsScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const TAB_ICONS: Record<keyof MainTabParamList, string> = {
-  Home: 'home',
-  Log: 'plus-circle',
-  Insights: 'chart-line',
-  Knowledge: 'book-open-variant',
-  Profile: 'account',
+const TAB_ICONS: Record<keyof MainTabParamList, { focused: string; unfocused: string }> = {
+  Home: { focused: 'home', unfocused: 'home-outline' },
+  Log: { focused: 'plus-circle', unfocused: 'plus-circle-outline' },
+  Insights: { focused: 'chart-line', unfocused: 'chart-line-variant' },
+  Knowledge: { focused: 'book-open-variant', unfocused: 'book-open-outline' },
+  Profile: { focused: 'account', unfocused: 'account-outline' },
 };
 
 export function MainTabNavigator() {
@@ -27,23 +27,28 @@ export function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <MaterialCommunityIcons
-            name={TAB_ICONS[route.name]}
+            name={focused ? TAB_ICONS[route.name].focused : TAB_ICONS[route.name].unfocused}
             size={size}
             color={color}
           />
         ),
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: '#FF9E64',
+        tabBarInactiveTintColor: 'rgba(26, 35, 126, 0.4)',
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          paddingBottom: 4,
-          height: 56,
+          borderTopWidth: 0,
+          height: 64,
+          paddingBottom: 8,
+          ...shadows.md,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 13,
+          fontWeight: '700',
+        },
+        tabBarItemStyle: {
+          paddingTop: 4,
         },
       })}
     >

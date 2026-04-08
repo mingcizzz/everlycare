@@ -28,7 +28,7 @@ export function TimelineFeed({
         <Card.Content style={styles.emptyContent}>
           <MaterialCommunityIcons
             name="notebook-outline"
-            size={48}
+            size={80}
             color={colors.textDisabled}
           />
           <Text style={styles.emptyText}>{t('home.noLogsToday')}</Text>
