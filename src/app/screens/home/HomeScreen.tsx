@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   StyleSheet,
@@ -39,9 +40,12 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     }
   }, [activeRecipient?.id, today]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // Refresh every time this tab gains focus (e.g. after adding a log)
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const greeting = user?.displayName
     ? t('home.greeting', { name: user.displayName })

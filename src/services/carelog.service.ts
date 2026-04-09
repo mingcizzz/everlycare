@@ -45,8 +45,11 @@ export const careLogService = {
       .order('occurred_at', { ascending: false });
 
     if (options?.date) {
-      const startOfDay = `${options.date}T00:00:00`;
-      const endOfDay = `${options.date}T23:59:59`;
+      // Use local timezone offset to ensure correct day filtering
+      const dateObj = new Date(`${options.date}T00:00:00`);
+      const tzOffset = dateObj.getTimezoneOffset() * 60000;
+      const startOfDay = new Date(dateObj.getTime()).toISOString();
+      const endOfDay = new Date(dateObj.getTime() + 86400000 - 1).toISOString();
       query = query.gte('occurred_at', startOfDay).lte('occurred_at', endOfDay);
     }
 
