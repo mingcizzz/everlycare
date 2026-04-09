@@ -1,39 +1,48 @@
 export const colors = {
-  primary: '#FF9E64',
-  primaryLight: '#FFB88C',
-  primaryDark: '#E8844A',
+  // Primary — calm teal (matches logo)
+  primary: '#4A9BAD',
+  primaryLight: '#6DB8C8',
+  primaryDark: '#3A7A8C',
 
-  secondary: '#4DB6AC',
-  secondaryLight: '#80CBC4',
-  secondaryDark: '#00897B',
+  // Secondary — soft sage green
+  secondary: '#7BC67E',
+  secondaryLight: '#A3D9A5',
+  secondaryDark: '#5AA05D',
 
-  accent: '#FFB84D',
+  // Accents
+  accent: '#F5A623',
   accentLight: '#FFCA6A',
-  accentDark: '#F5A623',
-  accent2: '#7C4DFF',
+  accentDark: '#D48A00',
+  accent2: '#5C6BC0', // soft indigo for data/insights
 
+  // Semantic
   error: '#EF5350',
   errorLight: '#FFCDD2',
   warning: '#FFA726',
   success: '#66BB6A',
   info: '#42A5F5',
 
-  background: '#FAFAF8',
+  // Backgrounds — clean white with subtle warmth
+  background: '#F5F8FA',
   surface: '#FFFFFF',
-  surfaceVariant: '#F5F0EB',
+  surfaceVariant: '#EDF2F5',
 
-  textPrimary: '#1A237E',
-  textSecondary: '#5C6BC0',
-  textDisabled: '#9E9E9E',
+  // Text — dark navy for readability
+  textPrimary: '#1E3A4F',
+  textSecondary: '#607D8B',
+  textDisabled: '#B0BEC5',
   textOnPrimary: '#FFFFFF',
   textOnGradient: '#FFFFFF',
 
-  border: '#E0D6CC',
-  divider: '#EDE7E0',
+  // Borders — cool gray
+  border: '#D6E0E5',
+  divider: '#E8EEF1',
 
-  gradientStart: '#FF9E64',
-  gradientEnd: '#F4A460',
+  // Gradients — teal matching logo
+  gradientStart: '#5A9FB2',
+  gradientEnd: '#3A7A8C',
 
+  // Log type colors — bold & vibrant
   logBowel: '#8D6E63',
   logUrination: '#42A5F5',
   logMeal: '#FFA726',
