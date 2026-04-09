@@ -209,7 +209,9 @@
     "medicationGuide": "用药指南",
     "mentalHealth": "心理健康",
     "dailyCare": "日常护理",
-    "readMore": "阅读更多"
+    "readMore": "阅读更多",
+    "addTip": "添加照护心得",
+    "all": "全部"
   },
   "onboarding": {
     "welcome": "欢迎使用 EverlyCare",

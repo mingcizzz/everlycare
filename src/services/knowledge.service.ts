@@ -28,6 +28,36 @@ export const knowledgeService = {
     return (data || []).map(mapFromDb);
   },
 
+  async createArticle(article: {
+    titleZh: string;
+    titleEn?: string;
+    contentZh: string;
+    contentEn?: string;
+    category: string;
+    tags?: string[];
+  }): Promise<Article> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('articles')
+      .insert({
+        title_zh: article.titleZh,
+        title_en: article.titleEn || null,
+        content_zh: article.contentZh,
+        content_en: article.contentEn || null,
+        category: article.category,
+        tags: article.tags || [],
+        author_id: session.user.id,
+        is_published: true,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return mapFromDb(data);
+  },
+
   async getArticleById(id: string): Promise<Article | null> {
     const { data, error } = await supabase
       .from('articles')

@@ -24,6 +24,7 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
   CareRecipientProfile: { recipientId?: string };
   ArticleDetail: { articleId: string };
+  AddArticle: undefined;
   Reminders: undefined;
   ReminderForm: { reminderId?: string };
   Medications: undefined;

@@ -209,7 +209,9 @@
     "medicationGuide": "Medication Guide",
     "mentalHealth": "Mental Health",
     "dailyCare": "Daily Care",
-    "readMore": "Read More"
+    "readMore": "Read More",
+    "addTip": "Add Care Tip",
+    "all": "All"
   },
   "onboarding": {
     "welcome": "Welcome to EverlyCare",

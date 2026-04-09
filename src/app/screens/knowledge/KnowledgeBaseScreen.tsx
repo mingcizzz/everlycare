@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Text, Card, ActivityIndicator } from 'react-native-paper';
+import { Text, Card } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useSettingsStore } from '../../../store/settingsStore';
@@ -46,6 +48,13 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
     loadArticles();
   }, [selectedCategory]);
 
+  // Refresh when returning from AddArticle
+  useFocusEffect(
+    useCallback(() => {
+      loadArticles();
+    }, [selectedCategory])
+  );
+
   const categories = Object.keys(CATEGORY_META);
 
   return (
@@ -69,13 +78,18 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
           ]}
           onPress={() => setSelectedCategory(null)}
         >
+          <MaterialCommunityIcons
+            name="view-grid"
+            size={16}
+            color={!selectedCategory ? '#FFFFFF' : colors.textPrimary}
+          />
           <Text
             style={[
               styles.categoryChipText,
               !selectedCategory && styles.categoryChipTextActive,
             ]}
           >
-            {t('common.add')}
+            {t('knowledge.all')}
           </Text>
         </TouchableOpacity>
         {categories.map((cat) => {
@@ -182,6 +196,22 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
           })
         )}
       </ScrollView>
+
+      {/* Add Tip FAB */}
+      <TouchableOpacity
+        style={styles.fabContainer}
+        onPress={() => navigation.navigate('AddArticle')}
+        activeOpacity={0.85}
+      >
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd] as [string, string]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.fab}
+        >
+          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
+        </LinearGradient>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -226,7 +256,7 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.md,
     gap: spacing.sm,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 100,
   },
   articleCard: {
     backgroundColor: colors.surface,
@@ -268,5 +298,18 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     marginTop: spacing.md,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: spacing.md,
+    bottom: spacing.xl,
+    ...shadows.lg,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

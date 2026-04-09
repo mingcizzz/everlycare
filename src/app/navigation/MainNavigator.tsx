@@ -4,6 +4,7 @@ import type { RootStackParamList } from '../../types/navigation';
 import { MainTabNavigator } from './MainTabNavigator';
 import { CareRecipientProfileScreen } from '../screens/profile/CareRecipientProfileScreen';
 import { ArticleDetailScreen } from '../screens/knowledge/ArticleDetailScreen';
+import { AddArticleScreen } from '../screens/knowledge/AddArticleScreen';
 import { RemindersScreen } from '../screens/reminders/RemindersScreen';
 import { ReminderFormScreen } from '../screens/reminders/ReminderFormScreen';
 import { MedicationsScreen } from '../screens/medications/MedicationsScreen';
@@ -23,6 +24,11 @@ export function MainNavigator() {
         options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
+      <Stack.Screen
+        name="AddArticle"
+        component={AddArticleScreen}
+        options={{ presentation: 'modal' }}
+      />
       <Stack.Screen name="Reminders" component={RemindersScreen} />
       <Stack.Screen
         name="ReminderForm"
