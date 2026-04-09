@@ -148,10 +148,11 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
               language === 'en' && article.titleEn
                 ? article.titleEn
                 : article.titleZh;
-            const preview =
+            const rawPreview =
               language === 'en' && article.contentEn
                 ? article.contentEn
                 : article.contentZh;
+            const preview = rawPreview.replace(/\\n/g, ' ').replace(/\n/g, ' ');
             const meta = CATEGORY_META[article.category] || CATEGORY_META.daily_care;
 
             return (
