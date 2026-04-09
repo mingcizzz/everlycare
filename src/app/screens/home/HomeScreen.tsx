@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -78,9 +79,13 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
       </ScrollView>
 
       {/* Gradient FAB */}
-      <View style={styles.fabContainer}>
+      <TouchableOpacity
+        style={styles.fabContainer}
+        onPress={() => navigation.navigate('Log')}
+        activeOpacity={0.85}
+      >
         <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
+          colors={[colors.gradientStart, colors.gradientEnd] as [string, string]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.fab}
@@ -88,11 +93,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
           <Text style={styles.fabLabel}>{t('home.quickLog')}</Text>
         </LinearGradient>
-        <View
-          style={StyleSheet.absoluteFill}
-          onTouchEnd={() => navigation.navigate('Log')}
-        />
-      </View>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
