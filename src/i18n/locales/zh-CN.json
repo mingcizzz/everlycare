@@ -36,7 +36,11 @@
     "registerSubtitle": "开始您的照护之旅",
     "logout": "退出登录",
     "phone": "手机号",
-    "orContinueWith": "或使用以下方式继续"
+    "orContinueWith": "或使用以下方式继续",
+    "deleteAccount": "删除账户",
+    "deleteAccountConfirm": "这将永久删除您的账户和所有照护数据。此操作不可撤销。",
+    "deleteAccountFinal": "您确定要删除吗？",
+    "deleteAccountFinalDesc": "所有照护记录、照护对象、提醒和个人资料将被永久删除。"
   },
   "tabs": {
     "home": "首页",

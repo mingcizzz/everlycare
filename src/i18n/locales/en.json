@@ -36,7 +36,11 @@
     "registerSubtitle": "Start your caregiving journey",
     "logout": "Log Out",
     "phone": "Phone Number",
-    "orContinueWith": "Or continue with"
+    "orContinueWith": "Or continue with",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "This will permanently delete your account and all care data. This action cannot be undone.",
+    "deleteAccountFinal": "Are you absolutely sure?",
+    "deleteAccountFinalDesc": "All your care logs, recipients, reminders, and profile data will be permanently deleted."
   },
   "tabs": {
     "home": "Home",

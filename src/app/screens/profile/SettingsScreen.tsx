@@ -20,7 +20,7 @@ const ICON_COLORS: Record<string, string> = {
 
 export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   const { t } = useTranslation();
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, deleteAccount } = useAuthStore();
   const { language, setLanguage } = useSettingsStore();
 
   const isEnglish = language === 'en';
@@ -150,6 +150,51 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
           />
           <Text style={styles.logoutText}>{t('auth.logout')}</Text>
         </TouchableOpacity>
+
+        {/* Delete Account */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => {
+            Alert.alert(
+              t('auth.deleteAccount'),
+              t('auth.deleteAccountConfirm'),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('auth.deleteAccount'),
+                  style: 'destructive',
+                  onPress: () => {
+                    Alert.alert(
+                      t('auth.deleteAccountFinal'),
+                      t('auth.deleteAccountFinalDesc'),
+                      [
+                        { text: t('common.cancel'), style: 'cancel' },
+                        {
+                          text: t('common.confirm'),
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await deleteAccount();
+                            } catch (err: any) {
+                              Alert.alert(t('common.error'), err.message);
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  },
+                },
+              ]
+            );
+          }}
+        >
+          <MaterialCommunityIcons
+            name="account-remove"
+            size={20}
+            color={colors.textDisabled}
+          />
+          <Text style={styles.deleteText}>{t('auth.deleteAccount')}</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -239,5 +284,16 @@ const styles = StyleSheet.create({
   logoutText: {
     ...typography.subtitle,
     color: colors.error,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  deleteText: {
+    ...typography.bodySmall,
+    color: colors.textDisabled,
   },
 });

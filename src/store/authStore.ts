@@ -10,6 +10,7 @@ interface AuthStore {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   setUser: (user: UserProfile | null) => void;
 }
 
@@ -74,6 +75,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signOut: async () => {
     await authService.signOut();
+    set({ user: null, isAuthenticated: false });
+  },
+
+  deleteAccount: async () => {
+    await authService.deleteAccount();
     set({ user: null, isAuthenticated: false });
   },
 

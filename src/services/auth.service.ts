@@ -38,6 +38,12 @@ export const authService = {
     if (error) throw error;
   },
 
+  async deleteAccount() {
+    const { error } = await supabase.rpc('delete_user_account');
+    if (error) throw error;
+    await supabase.auth.signOut();
+  },
+
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
