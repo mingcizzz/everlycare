@@ -1,5 +1,7 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import type { MainTabParamList } from '../../types/navigation';
@@ -25,6 +27,10 @@ const TAB_ICONS: Record<
 
 export function MainTabNavigator() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  // Ensure proper bottom spacing for devices with/without home indicator
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 8);
 
   return (
     <Tab.Navigator
@@ -46,20 +52,22 @@ export function MainTabNavigator() {
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 0,
-          height: 56,
-          paddingBottom: 4,
+          height: 52 + bottomPadding,
+          paddingBottom: bottomPadding,
+          paddingTop: 6,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.05,
-          shadowRadius: 6,
-          elevation: 2,
+          shadowRadius: 8,
+          elevation: 3,
         },
         tabBarLabelStyle: {
           fontSize: 10,
-          fontWeight: '400',
+          fontWeight: '500',
+          marginTop: -2,
         },
         tabBarItemStyle: {
-          paddingTop: 4,
+          paddingTop: 2,
         },
       })}
     >
