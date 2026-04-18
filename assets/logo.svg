@@ -1,76 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Premium emerald gradient matching app theme -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#065F46" />
       <stop offset="100%" stop-color="#064E3B" />
     </linearGradient>
-
-    <!-- Subtle inner glow -->
-    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
-      <stop offset="0%" stop-color="#10B981" stop-opacity="0.15" />
+    <radialGradient id="glow" cx="50%" cy="42%" r="45%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.08" />
       <stop offset="100%" stop-color="#064E3B" stop-opacity="0" />
     </radialGradient>
-
-    <!-- Heart gradient — warm mint to white -->
-    <linearGradient id="heartFill" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#D1FAE5" />
-    </linearGradient>
-
-    <!-- Pulse line gradient -->
-    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#10B981" />
-      <stop offset="100%" stop-color="#059669" />
-    </linearGradient>
   </defs>
 
-  <!-- Background — iOS style rounded square -->
-  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#bg)" />
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="230" ry="230" fill="url(#bg)" />
+  <rect width="1024" height="1024" rx="230" ry="230" fill="url(#glow)" />
 
-  <!-- Subtle glow overlay -->
-  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#glow)" />
-
-  <!-- Decorative circle (matching app hero style) -->
-  <circle cx="820" cy="200" r="160" fill="rgba(255,255,255,0.03)" />
-  <circle cx="200" cy="800" r="120" fill="rgba(255,255,255,0.025)" />
-
-  <!-- Heart shape — clean, geometrically precise -->
-  <g transform="translate(512, 380)">
-    <path d="M0 110
-             C-12 98, -40 68, -72 36
-             C-108 0, -140 -42, -140 -82
-             C-140 -130, -108 -160, -72 -160
-             C-44 -160, -20 -142, 0 -116
-             C20 -142, 44 -160, 72 -160
-             C108 -160, 140 -130, 140 -82
-             C140 -42, 108 0, 72 36
-             C40 68, 12 98, 0 110 Z"
-          fill="url(#heartFill)" />
+  <!-- Heart — geometrically precise, slightly larger, centered higher -->
+  <g transform="translate(512, 400)">
+    <path d="M0 108
+             C-10 97, -38 66, -70 32
+             C-106 -6, -136 -42, -136 -80
+             C-136 -124, -106 -152, -70 -152
+             C-42 -152, -18 -134, 0 -108
+             C18 -134, 42 -152, 70 -152
+             C106 -152, 136 -124, 136 -80
+             C136 -42, 106 -6, 70 32
+             C38 66, 10 97, 0 108 Z"
+          fill="white" />
   </g>
 
-  <!-- Heartbeat pulse line — crisp, medical-grade -->
-  <g transform="translate(512, 370)">
-    <polyline
-      points="-52,-48 -28,-48 -16,-88 0,-8 16,-68 28,-48 52,-48"
-      fill="none"
-      stroke="url(#pulseGrad)"
-      stroke-width="10"
-      stroke-linecap="round"
-      stroke-linejoin="round" />
-  </g>
-
-  <!-- Hands/Cradle — elegant, symmetrical arcs -->
-  <g transform="translate(512, 588)" fill="none" stroke-linecap="round">
-    <!-- Left arc -->
-    <path d="M-24 -12 C-56 18, -112 48, -168 32 C-196 24, -208 -4, -192 -28"
-          stroke="white" stroke-width="22" opacity="0.9" />
-    <!-- Right arc -->
-    <path d="M24 -12 C56 18, 112 48, 168 32 C196 24, 208 -4, 192 -28"
-          stroke="white" stroke-width="22" opacity="0.9" />
-  </g>
-
-  <!-- Small protective dots at hand ends (refined detail) -->
-  <circle cx="326" cy="562" r="8" fill="white" opacity="0.5" />
-  <circle cx="698" cy="562" r="8" fill="white" opacity="0.5" />
+  <!-- Cradling arc — single smooth curve, thicker, more confident -->
+  <path d="M300 640 C370 714, 460 748, 512 748 C564 748, 654 714, 724 640"
+        fill="none" stroke="white" stroke-width="36"
+        stroke-linecap="round" opacity="0.9" />
 </svg>
