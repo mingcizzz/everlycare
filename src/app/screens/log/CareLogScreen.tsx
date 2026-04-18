@@ -18,60 +18,33 @@ import { useRecipientStore } from '../../../store/recipientStore';
 import type { MainTabScreenProps } from '../../../types/navigation';
 import { QuickLogSheet } from './QuickLogSheet';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_GAP = 12;
-const CARD_PADDING = 16;
-const CARD_WIDTH = (SCREEN_WIDTH - CARD_PADDING * 2 - CARD_GAP) / 2;
+const SW = Dimensions.get('window').width;
+const GAP = 14;
+const PAD = 20;
+const CARD_W = (SW - PAD * 2 - GAP) / 2;
 
-const ESSENTIAL_TYPES: LogType[] = ['bowel', 'urination', 'meal', 'medication'];
-const WELLNESS_TYPES: LogType[] = ['mood', 'hygiene', 'activity', 'note'];
+const ESSENTIALS: LogType[] = ['bowel', 'urination', 'meal', 'medication'];
+const WELLNESS: LogType[] = ['mood', 'hygiene', 'activity', 'note'];
 
-interface LogCardProps {
-  type: LogType;
-  onPress: () => void;
-}
-
-function LogCard({ type, onPress }: LogCardProps) {
+function LogCard({ type, onPress }: { type: LogType; onPress: () => void }) {
   const { t } = useTranslation();
   const config = LOG_TYPE_CONFIG[type];
-  const bgColor = logBackgrounds[type] || colors.surface;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
+  const bg = logBackgrounds[type] || '#F5F5F5';
+  const scale = useRef(new Animated.Value(1)).current;
 
   return (
-    <Animated.View style={[styles.cardWrapper, { transform: [{ scale: scaleAnim }] }]}>
+    <Animated.View style={[s.cardWrap, { transform: [{ scale }] }]}>
       <TouchableOpacity
         activeOpacity={1}
         onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={[styles.logCard, { backgroundColor: bgColor }]}
+        onPressIn={() => Animated.spring(scale, { toValue: 0.94, useNativeDriver: true, speed: 50, bounciness: 4 }).start()}
+        onPressOut={() => Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 50, bounciness: 4 }).start()}
+        style={[s.card, { backgroundColor: bg }]}
       >
-        <MaterialCommunityIcons
-          name={config.icon as any}
-          size={36}
-          color={config.color}
-        />
-        <Text style={styles.logLabel} numberOfLines={1}>
-          {t(config.labelKey)}
-        </Text>
+        <View style={[s.iconWrap, { backgroundColor: config.color + '20' }]}>
+          <MaterialCommunityIcons name={config.icon as any} size={28} color={config.color} />
+        </View>
+        <Text style={s.cardLabel}>{t(config.labelKey)}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -80,176 +53,85 @@ function LogCard({ type, onPress }: LogCardProps) {
 export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
   const { t } = useTranslation();
   const { activeRecipient } = useRecipientStore();
-  const [selectedLogType, setSelectedLogType] = useState<LogType | null>(null);
+  const [selectedType, setSelectedType] = useState<LogType | null>(null);
 
   if (!activeRecipient) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
-            <MaterialCommunityIcons
-              name="account-plus-outline"
-              size={48}
-              color={colors.textTertiary}
-            />
+      <SafeAreaView style={s.root}>
+        <View style={s.empty}>
+          <View style={s.emptyCircle}>
+            <MaterialCommunityIcons name="account-plus" size={48} color="#94A3B8" />
           </View>
-          <Text style={styles.emptyTitle}>{t('recipient.addNew')}</Text>
-          <Text style={styles.emptySubtitle}>
-            {t('recipient.addNewDescription', { defaultValue: 'Add a care recipient to start logging' })}
-          </Text>
+          <Text style={s.emptyTitle}>{t('recipient.addNew')}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Log Care</Text>
-        <Text style={styles.subtitle}>
-          {t('home.caringFor', { name: activeRecipient.name })}
-        </Text>
-      </View>
+    <SafeAreaView style={s.root}>
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <View style={s.header}>
+          <Text style={s.title}>Log Care</Text>
+          <Text style={s.subtitle}>{t('home.caringFor', { name: activeRecipient.name })}</Text>
+        </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Essentials Section */}
-        <Text style={styles.sectionLabel}>ESSENTIALS</Text>
-        <View style={styles.grid}>
-          {ESSENTIAL_TYPES.map((type) => (
-            <LogCard
-              key={type}
-              type={type}
-              onPress={() => setSelectedLogType(type)}
-            />
+        <Text style={s.groupLabel}>ESSENTIALS</Text>
+        <View style={s.grid}>
+          {ESSENTIALS.map(type => (
+            <LogCard key={type} type={type} onPress={() => setSelectedType(type)} />
           ))}
         </View>
 
-        {/* Wellness Section */}
-        <Text style={styles.sectionLabel}>WELLNESS</Text>
-        <View style={styles.grid}>
-          {WELLNESS_TYPES.map((type) => (
-            <LogCard
-              key={type}
-              type={type}
-              onPress={() => setSelectedLogType(type)}
-            />
+        <Text style={s.groupLabel}>WELLNESS</Text>
+        <View style={s.grid}>
+          {WELLNESS.map(type => (
+            <LogCard key={type} type={type} onPress={() => setSelectedType(type)} />
           ))}
         </View>
       </ScrollView>
 
-      {selectedLogType && (
+      {selectedType && (
         <QuickLogSheet
-          logType={selectedLogType}
+          logType={selectedType}
           recipientId={activeRecipient.id}
-          onDismiss={() => setSelectedLogType(null)}
-          onSaved={() => {
-            setSelectedLogType(null);
-            Alert.alert(t('careLog.logSaved'));
-          }}
+          onDismiss={() => setSelectedType(null)}
+          onSaved={() => { setSelectedType(null); Alert.alert(t('careLog.logSaved')); }}
         />
       )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFB',
-  },
-  header: {
-    paddingHorizontal: CARD_PADDING,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  scrollContent: {
-    paddingHorizontal: CARD_PADDING,
-    paddingBottom: spacing.xxl,
-  },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#F1F5F9' },
+  scroll: { paddingBottom: 40 },
 
-  /* Section Labels */
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textTertiary,
-    letterSpacing: 2,
-    marginBottom: 12,
-    marginTop: 24,
-    paddingHorizontal: 4,
-  },
+  header: { paddingHorizontal: PAD, paddingTop: spacing.md, paddingBottom: 4 },
+  title: { fontSize: 30, fontWeight: '800', color: '#1E293B', letterSpacing: -0.8 },
+  subtitle: { fontSize: 14, color: '#94A3B8', marginTop: 4 },
 
-  /* Grid */
+  groupLabel: {
+    fontSize: 12, fontWeight: '700', color: '#94A3B8',
+    letterSpacing: 2, marginTop: 28, marginBottom: 14, paddingHorizontal: PAD,
+  },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: CARD_GAP,
+    flexDirection: 'row', flexWrap: 'wrap',
+    paddingHorizontal: PAD, gap: GAP,
   },
-  cardWrapper: {
-    width: CARD_WIDTH,
+  cardWrap: { width: CARD_W },
+  card: {
+    height: 140, borderRadius: 24, padding: 20,
+    justifyContent: 'space-between',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  logCard: {
-    borderRadius: 24,
-    height: 140,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    shadowOpacity: 0.06,
-    elevation: 2,
+  iconWrap: {
+    width: 52, height: 52, borderRadius: 18,
+    justifyContent: 'center', alignItems: 'center',
   },
-  logLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: 12,
-  },
+  cardLabel: { fontSize: 16, fontWeight: '700', color: '#1E293B', letterSpacing: -0.2 },
 
-  /* Empty State */
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    gap: spacing.sm,
-  },
-  emptyIconCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.surfaceSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
+  empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyCircle: { width: 96, height: 96, borderRadius: 48, backgroundColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  emptyTitle: { fontSize: 16, fontWeight: '600', color: '#64748B' },
 });

@@ -8,118 +8,81 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
+  StatusBar,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Svg, { Circle } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
-import { colors, spacing, borderRadius, shadows } from '../../../theme';
+import { colors, spacing } from '../../../theme';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
 import { QuickLogSheet } from '../log/QuickLogSheet';
 import { getToday } from '../../../utils/date';
 import type { MainTabScreenProps } from '../../../types/navigation';
 import type { LogType } from '../../../types/careLog';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_GAP = 12;
-const GRID_PADDING = 20;
+const { width: SW } = Dimensions.get('window');
 
-const RING_SIZE = 120;
-const RING_STROKE = 8;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-const TARGET_LOGS = 8;
+const RING_SIZE = 160;
+const RING_STROKE = 10;
+const RING_R = (RING_SIZE - RING_STROKE) / 2;
+const RING_C = 2 * Math.PI * RING_R;
+const TARGET = 8;
 
-function getGreetingIcon(): { text: string; icon: string } {
-  const hour = new Date().getHours();
-  if (hour < 12) return { text: 'Good morning', icon: 'weather-sunny' };
-  if (hour < 18) return { text: 'Good afternoon', icon: 'weather-partly-cloudy' };
-  return { text: 'Good evening', icon: 'weather-night' };
+function greetingInfo() {
+  const h = new Date().getHours();
+  if (h < 12) return { text: 'Good morning', icon: 'weather-sunny' as const };
+  if (h < 18) return { text: 'Good afternoon', icon: 'weather-partly-cloudy' as const };
+  return { text: 'Good evening', icon: 'weather-night' as const };
 }
 
-/* Quick Action Pill */
-interface QuickActionProps {
-  icon: string;
-  iconColor: string;
-  label: string;
-  onPress: () => void;
-}
+const STATS_CFG = [
+  { key: 'bath', icon: 'toilet', label: 'Bathroom', color: '#F59E0B' },
+  { key: 'fluid', icon: 'cup-water', label: 'Fluid', color: '#3B82F6' },
+  { key: 'meds', icon: 'pill', label: 'Meds', color: '#8B5CF6' },
+  { key: 'meal', icon: 'food-apple', label: 'Meals', color: '#10B981' },
+] as const;
 
-function QuickActionPill({ icon, iconColor, label, onPress }: QuickActionProps) {
+const QUICK = [
+  { type: 'bowel' as LogType, icon: 'toilet', color: '#8B7355' },
+  { type: 'urination' as LogType, icon: 'water', color: '#3B82F6' },
+  { type: 'meal' as LogType, icon: 'food-apple', color: '#F59E0B' },
+  { type: 'medication' as LogType, icon: 'pill', color: '#8B5CF6' },
+  { type: 'mood' as LogType, icon: 'emoticon-outline', color: '#EC4899' },
+  { type: 'note' as LogType, icon: 'note-text', color: '#6B7280' },
+];
+
+/* ── Mini Stat Chip ── */
+function StatChip({ icon, value, label, color }: {
+  icon: string; value: string; label: string; color: string;
+}) {
   return (
-    <TouchableOpacity
-      style={styles.quickPill}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <MaterialCommunityIcons name={icon as any} size={18} color={iconColor} />
-      <Text style={styles.quickPillLabel}>{label}</Text>
-    </TouchableOpacity>
+    <View style={s.statChip}>
+      <View style={[s.statDot, { backgroundColor: color }]}>
+        <MaterialCommunityIcons name={icon as any} size={16} color="#FFF" />
+      </View>
+      <Text style={s.statVal}>{value}</Text>
+      <Text style={s.statLbl}>{label}</Text>
+    </View>
   );
 }
 
-/* Stat Card */
-interface StatCardProps {
-  icon: string;
-  iconColor: string;
-  bgColor: string;
-  value: string;
-  label: string;
-}
-
-function StatCard({ icon, iconColor, bgColor, value, label }: StatCardProps) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  return (
-    <Animated.View style={[styles.statCard, { transform: [{ scale: scaleAnim }] }]}>
-      <TouchableOpacity
-        activeOpacity={1}
-        onPressIn={() => {
-          Animated.spring(scaleAnim, {
-            toValue: 0.95,
-            useNativeDriver: true,
-            speed: 50,
-            bounciness: 4,
-          }).start();
-        }}
-        onPressOut={() => {
-          Animated.spring(scaleAnim, {
-            toValue: 1,
-            useNativeDriver: true,
-            speed: 50,
-            bounciness: 4,
-          }).start();
-        }}
-        style={[styles.statCardInner, { backgroundColor: bgColor }]}
-      >
-        <View style={[styles.statIconCircle, { backgroundColor: iconColor + '20' }]}>
-          <MaterialCommunityIcons name={icon as any} size={22} color={iconColor} />
-        </View>
-        <View style={styles.statBottom}>
-          <Text style={styles.statValue}>{value}</Text>
-          <Text style={styles.statLabel} numberOfLines={1}>{label}</Text>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
-
-/* Home Screen */
+/* ── Home ── */
 export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { activeRecipient, loadRecipients } = useRecipientStore();
   const { logs, dailySummary, isLoading, loadLogs, loadDailySummary } = useCareLogStore();
-
-  const [quickLogType, setQuickLogType] = useState<LogType | null>(null);
+  const [qlType, setQlType] = useState<LogType | null>(null);
 
   const today = getToday();
-  const greeting = getGreetingIcon();
+  const g = greetingInfo();
 
   const refresh = useCallback(async () => {
     await loadRecipients();
@@ -131,410 +94,183 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     }
   }, [activeRecipient?.id, today]);
 
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh])
-  );
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
-  const totalLogs = dailySummary?.totalLogs ?? 0;
-  const progress = Math.min(1, totalLogs / Math.max(1, TARGET_LOGS));
-  const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
+  const total = dailySummary?.totalLogs ?? 0;
+  const pct = Math.min(1, total / TARGET);
+  const dash = RING_C * (1 - pct);
+
+  const statValues = [
+    `${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`,
+    `${dailySummary?.fluidTotalMl ?? 0}`,
+    `${dailySummary?.medicationsTaken ?? 0}`,
+    `${dailySummary?.mealCount ?? 0}`,
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={s.root}>
+      <StatusBar barStyle="light-content" />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refresh} />
-        }
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor="#fff" />}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. Hero */}
+        {/* ━━ HERO ━━ full-bleed dark teal section */}
         <LinearGradient
-          colors={['#0D9488', '#0A7B71']}
+          colors={['#0C8C80', '#085C54']}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
+          end={{ x: 0.3, y: 1 }}
+          style={[s.hero, { paddingTop: insets.top + 16 }]}
         >
-          <View style={styles.heroContent}>
-            <View style={styles.heroLeft}>
-              <View style={styles.greetingRow}>
-                <MaterialCommunityIcons name={greeting.icon as any} size={16} color="rgba(255,255,255,0.8)" />
-                <Text style={styles.heroGreeting}>{greeting.text}</Text>
-              </View>
-              <Text style={styles.heroName}>
-                {user?.displayName || t('common.appName')}
-              </Text>
-              {activeRecipient && (
-                <View style={styles.caringForRow}>
-                  <MaterialCommunityIcons name="heart" size={14} color="rgba(255,255,255,0.5)" />
-                  <Text style={styles.heroCaringFor}>
-                    {t('home.caringFor', { name: activeRecipient.name })}
-                  </Text>
-                </View>
-              )}
-            </View>
+          {/* Greeting */}
+          <View style={s.greetRow}>
+            <MaterialCommunityIcons name={g.icon as any} size={18} color="rgba(255,255,255,0.7)" />
+            <Text style={s.greetTxt}>{g.text}</Text>
+          </View>
+          <Text style={s.heroName}>{user?.displayName || 'EverlyCare'}</Text>
+          {activeRecipient && (
+            <Text style={s.heroCaring}>
+              {t('home.caringFor', { name: activeRecipient.name })}
+            </Text>
+          )}
 
-            <View style={styles.heroRight}>
-              <Svg width={RING_SIZE} height={RING_SIZE}>
-                <Circle
-                  cx={RING_SIZE / 2}
-                  cy={RING_SIZE / 2}
-                  r={RING_RADIUS}
-                  stroke="rgba(255,255,255,0.15)"
-                  strokeWidth={RING_STROKE}
-                  fill="none"
-                />
-                <Circle
-                  cx={RING_SIZE / 2}
-                  cy={RING_SIZE / 2}
-                  r={RING_RADIUS}
-                  stroke="#FFFFFF"
-                  strokeWidth={RING_STROKE}
-                  strokeLinecap="round"
-                  fill="none"
-                  strokeDasharray={`${RING_CIRCUMFERENCE}`}
-                  strokeDashoffset={strokeDashoffset}
-                  rotation={-90}
-                  origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
-                />
-              </Svg>
-              <View style={styles.ringTextContainer}>
-                <Text style={styles.ringCount}>{totalLogs}</Text>
-                <Text style={styles.ringLabel}>today</Text>
-              </View>
+          {/* Ring */}
+          <View style={s.ringWrap}>
+            <Svg width={RING_SIZE} height={RING_SIZE}>
+              <Circle cx={RING_SIZE/2} cy={RING_SIZE/2} r={RING_R}
+                stroke="rgba(255,255,255,0.12)" strokeWidth={RING_STROKE} fill="none" />
+              <Circle cx={RING_SIZE/2} cy={RING_SIZE/2} r={RING_R}
+                stroke="#FFF" strokeWidth={RING_STROKE} strokeLinecap="round"
+                fill="none" strokeDasharray={`${RING_C}`} strokeDashoffset={dash}
+                rotation={-90} origin={`${RING_SIZE/2},${RING_SIZE/2}`} />
+            </Svg>
+            <View style={s.ringCenter}>
+              <Text style={s.ringNum}>{total}</Text>
+              <Text style={s.ringSub}>of {TARGET}</Text>
             </View>
           </View>
+
+          <Text style={s.ringCaption}>care logs today</Text>
         </LinearGradient>
 
-        {/* 2. Quick Actions */}
-        <View style={styles.quickActionsRow}>
-          <QuickActionPill
-            icon="toilet"
-            iconColor={colors.logBowel}
-            label={t('careLog.bowel')}
-            onPress={() => setQuickLogType('bowel')}
-          />
-          <QuickActionPill
-            icon="water"
-            iconColor={colors.logUrination}
-            label={t('meal.fluid')}
-            onPress={() => setQuickLogType('urination')}
-          />
-          <QuickActionPill
-            icon="pill"
-            iconColor={colors.logMedication}
-            label={t('careLog.medication')}
-            onPress={() => setQuickLogType('medication')}
-          />
-          <QuickActionPill
-            icon="food-apple"
-            iconColor={colors.logMeal}
-            label={t('careLog.meal')}
-            onPress={() => setQuickLogType('meal')}
-          />
+        {/* ━━ STATS ROW ━━ floating chips overlapping hero */}
+        <View style={s.statsRow}>
+          {STATS_CFG.map((cfg, i) => (
+            <StatChip key={cfg.key} icon={cfg.icon} color={cfg.color}
+              value={statValues[i]} label={cfg.label} />
+          ))}
         </View>
 
-        {/* 3. Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statsRow}>
-            <StatCard
-              icon="toilet"
-              iconColor={colors.logBowel}
-              bgColor="#FEF3C7"
-              value={`${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`}
-              label={t('insights.bathroomVisits')}
-            />
-            <StatCard
-              icon="cup-water"
-              iconColor={colors.logUrination}
-              bgColor="#DBEAFE"
-              value={`${dailySummary?.fluidTotalMl ?? 0}ml`}
-              label={t('insights.fluidIntake')}
-            />
-          </View>
-          <View style={styles.statsRow}>
-            <StatCard
-              icon="pill"
-              iconColor={colors.logMedication}
-              bgColor="#F3E8FF"
-              value={`${dailySummary?.medicationsTaken ?? 0}`}
-              label={t('medication.taken')}
-            />
-            <StatCard
-              icon="food-apple"
-              iconColor={colors.logMeal}
-              bgColor="#DCFCE7"
-              value={`${dailySummary?.mealCount ?? 0}`}
-              label={t('careLog.meal')}
-            />
-          </View>
+        {/* ━━ QUICK ACTIONS ━━ */}
+        <View style={s.section}>
+          <Text style={s.secTitle}>{t('home.quickLog')}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.quickRow}>
+            {QUICK.map(q => (
+              <TouchableOpacity key={q.type} activeOpacity={0.75}
+                style={s.quickBtn} onPress={() => setQlType(q.type)}>
+                <View style={[s.quickIcon, { backgroundColor: q.color + '15' }]}>
+                  <MaterialCommunityIcons name={q.icon as any} size={22} color={q.color} />
+                </View>
+                <Text style={s.quickLbl}>{t(`careLog.${q.type}`)}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
-        {/* 4. Timeline */}
-        <View style={styles.timelineSection}>
-          <View style={styles.timelineHeader}>
-            <Text style={styles.sectionTitle}>{t('home.timeline')}</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Log')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.seeAllLink}>{t('common.seeAll')}</Text>
+        {/* ━━ TIMELINE ━━ */}
+        <View style={s.section}>
+          <View style={s.secHeader}>
+            <Text style={s.secTitle}>{t('home.timeline')}</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Log')} activeOpacity={0.7}>
+              <Text style={s.seeAll}>{t('common.seeAll')}</Text>
             </TouchableOpacity>
           </View>
           {logs.length > 0 ? (
             <TimelineFeed logs={logs.slice(0, 5)} />
           ) : (
-            <View style={styles.emptyTimeline}>
-              <View style={styles.emptyIconCircle}>
-                <MaterialCommunityIcons
-                  name="notebook-outline"
-                  size={40}
-                  color={colors.textTertiary}
-                />
-              </View>
-              <Text style={styles.emptyText}>{t('home.noLogsToday')}</Text>
-              <Text style={styles.emptySubtext}>{t('home.addFirstLog')}</Text>
+            <View style={s.empty}>
+              <MaterialCommunityIcons name="notebook-outline" size={48} color="#CBD5E1" />
+              <Text style={s.emptyTxt}>{t('home.noLogsToday')}</Text>
             </View>
           )}
         </View>
       </ScrollView>
 
       {/* FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('Log')}
-        activeOpacity={0.85}
-      >
-        <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
+      <TouchableOpacity style={[s.fab, { bottom: 20 }]}
+        onPress={() => navigation.navigate('Log')} activeOpacity={0.85}>
+        <LinearGradient colors={['#0D9488','#085C54']} style={s.fabGrad}
+          start={{x:0,y:0}} end={{x:1,y:1}}>
+          <MaterialCommunityIcons name="plus" size={28} color="#FFF" />
+        </LinearGradient>
       </TouchableOpacity>
 
-      {/* Quick Log Sheet */}
-      {quickLogType && activeRecipient && (
-        <QuickLogSheet
-          logType={quickLogType}
-          recipientId={activeRecipient.id}
-          onDismiss={() => setQuickLogType(null)}
-          onSaved={() => {
-            setQuickLogType(null);
-            refresh();
-          }}
-        />
+      {qlType && activeRecipient && (
+        <QuickLogSheet logType={qlType} recipientId={activeRecipient.id}
+          onDismiss={() => setQlType(null)}
+          onSaved={() => { setQlType(null); refresh(); }} />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#F1F5F9' },
 
-  /* Hero */
+  /* HERO */
   hero: {
-    marginHorizontal: 16,
-    marginTop: spacing.sm,
-    borderRadius: 28,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
-  heroContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  heroLeft: {
-    flex: 1,
-    marginRight: 16,
-  },
-  greetingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  heroGreeting: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.8)',
-  },
-  heroName: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-    marginBottom: 6,
-  },
-  caringForRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  heroCaringFor: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.6)',
-  },
-  heroRight: {
-    width: RING_SIZE,
-    height: RING_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringTextContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringCount: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: -1,
-  },
-  ringLabel: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 1,
-  },
+  greetRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  greetTxt: { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
+  heroName: { fontSize: 30, fontWeight: '800', color: '#FFF', letterSpacing: -0.8, marginBottom: 4 },
+  heroCaring: { fontSize: 14, color: 'rgba(255,255,255,0.5)' },
 
-  /* Quick Actions */
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: GRID_PADDING,
-    marginTop: 20,
-    gap: 8,
-  },
-  quickPill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.full,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
-  quickPillLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
+  ringWrap: { alignSelf: 'center', marginTop: 28, width: RING_SIZE, height: RING_SIZE },
+  ringCenter: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
+  ringNum: { fontSize: 52, fontWeight: '800', color: '#FFF', letterSpacing: -2 },
+  ringSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: -4 },
+  ringCaption: { textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 10 },
 
-  /* Stats Grid */
-  statsGrid: {
-    marginHorizontal: GRID_PADDING,
-    marginTop: 16,
-    gap: CARD_GAP,
-  },
+  /* STATS — overlapping hero bottom edge */
   statsRow: {
     flexDirection: 'row',
-    gap: CARD_GAP,
-  },
-  statCard: {
-    flex: 1,
-    height: 120,
+    marginHorizontal: 20,
+    marginTop: -32,
+    backgroundColor: '#FFF',
     borderRadius: 20,
-    ...shadows.md,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 16,
+    elevation: 4,
   },
-  statCardInner: {
-    flex: 1,
-    borderRadius: 20,
-    padding: 16,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-  },
-  statIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statBottom: {
-    marginTop: 'auto',
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1E293B',
-    letterSpacing: -0.5,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#64748B',
-    marginTop: 2,
-  },
+  statChip: { flex: 1, alignItems: 'center' },
+  statDot: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  statVal: { fontSize: 20, fontWeight: '700', color: '#1E293B', letterSpacing: -0.5 },
+  statLbl: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
 
-  /* Timeline */
-  timelineSection: {
-    marginTop: 24,
-    marginHorizontal: GRID_PADDING,
-    marginBottom: spacing.lg,
-  },
-  timelineHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1E293B',
-    letterSpacing: -0.3,
-  },
-  seeAllLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  emptyTimeline: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
-  },
-  emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.surfaceSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  emptyText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 4,
-  },
-  emptySubtext: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#94A3B8',
-  },
+  /* SECTIONS */
+  section: { marginTop: 28, paddingHorizontal: 20 },
+  secHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  secTitle: { fontSize: 20, fontWeight: '700', color: '#1E293B', letterSpacing: -0.3 },
+  seeAll: { fontSize: 14, fontWeight: '600', color: colors.primary },
+
+  /* QUICK ACTIONS */
+  quickRow: { gap: 16, paddingRight: 20 },
+  quickBtn: { alignItems: 'center', width: 64 },
+  quickIcon: { width: 52, height: 52, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  quickLbl: { fontSize: 12, fontWeight: '500', color: '#64748B', textAlign: 'center' },
+
+  /* EMPTY */
+  empty: { alignItems: 'center', paddingVertical: 40 },
+  emptyTxt: { fontSize: 14, color: '#94A3B8', marginTop: 12 },
 
   /* FAB */
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.lg,
-  },
+  fab: { position: 'absolute', right: 20, shadowColor: '#0D9488', shadowOffset: {width:0,height:6}, shadowOpacity: 0.35, shadowRadius: 12, elevation: 8 },
+  fabGrad: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
 });
