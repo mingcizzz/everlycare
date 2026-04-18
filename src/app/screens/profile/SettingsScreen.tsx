@@ -9,22 +9,24 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { Text, Switch } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { useSettingsStore } from '../../../store/settingsStore';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { colors } from '../../../theme';
 import type { MainTabScreenProps } from '../../../types/navigation';
 
 const SETTINGS_ITEMS = [
-  { icon: 'bell-outline', color: colors.primary, key: 'reminders' },
+  { icon: 'bell-outline', color: '#0D9488', key: 'reminders' },
   { icon: 'pill', color: '#8B5CF6', key: 'medication' },
-  { icon: 'account-group-outline', color: colors.secondary, key: 'careTeam' },
+  { icon: 'account-group-outline', color: '#FF7B6F', key: 'careTeam' },
   { icon: 'account-heart-outline', color: '#E74C3C', key: 'careRecipient' },
 ] as const;
 
 export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { user, signOut, deleteAccount } = useAuthStore();
   const { language, setLanguage } = useSettingsStore();
 
@@ -106,40 +108,54 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      {/* Dark Hero Header */}
+      <LinearGradient
+        colors={['#064E3B', '#065F46', '#047857']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.heroHeader, { paddingTop: insets.top + 20 }]}
+      >
+        {/* Avatar */}
+        <View style={styles.avatarCircle}>
+          <Text style={styles.avatarText}>
+            {user?.displayName?.charAt(0)?.toUpperCase() || '?'}
+          </Text>
+        </View>
+
+        {/* Name */}
+        <Text style={styles.profileName}>
+          {user?.displayName || 'User'}
+        </Text>
+
+        {/* Role */}
+        <Text style={styles.profileRole}>{t('careTeam.primary')}</Text>
+
+        {/* User ID */}
+        {user?.id && (
+          <TouchableOpacity
+            onPress={handleCopyId}
+            activeOpacity={0.6}
+            style={styles.userIdRow}
+          >
+            <Text style={styles.userId}>
+              ID: {user.id.slice(0, 8)}...
+            </Text>
+            <MaterialCommunityIcons
+              name={'content-copy' as any}
+              size={11}
+              color="rgba(255,255,255,0.3)"
+            />
+          </TouchableOpacity>
+        )}
+      </LinearGradient>
+
+      {/* Light Section */}
       <ScrollView
+        style={styles.lightSection}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Section - Centered, no card */}
-        <View style={styles.profileSection}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>
-              {user?.displayName?.charAt(0)?.toUpperCase() || '?'}
-            </Text>
-          </View>
-          <Text style={styles.profileName}>
-            {user?.displayName || 'User'}
-          </Text>
-          <Text style={styles.profileRole}>{t('careTeam.primary')}</Text>
-          {user?.id && (
-            <TouchableOpacity
-              onPress={handleCopyId}
-              activeOpacity={0.6}
-              style={styles.userIdRow}
-            >
-              <Text style={styles.userId}>
-                ID: {user.id.slice(0, 8)}...
-              </Text>
-              <MaterialCommunityIcons
-                name={'content-copy' as any}
-                size={11}
-                color={colors.textTertiary}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
@@ -166,14 +182,14 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
             <View style={styles.settingLeft}>
               <View
                 style={[
-                  styles.iconCircle,
-                  { backgroundColor: colors.tertiary + '18' },
+                  styles.iconDot,
+                  { backgroundColor: '#7B68EE' + '1A' },
                 ]}
               >
                 <MaterialCommunityIcons
                   name={'translate' as any}
                   size={20}
-                  color={colors.tertiary}
+                  color="#7B68EE"
                 />
               </View>
               <Text style={styles.settingLabel}>English</Text>
@@ -181,11 +197,11 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
             <Switch
               value={isEnglish}
               onValueChange={(v) => setLanguage(v ? 'en' : 'zh-CN')}
-              color={colors.primary}
+              color="#0D9488"
             />
           </View>
 
-          {SETTINGS_ITEMS.map((item, index) => (
+          {SETTINGS_ITEMS.map((item) => (
             <React.Fragment key={item.key}>
               <View style={styles.divider} />
               <TouchableOpacity
@@ -196,8 +212,8 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
                 <View style={styles.settingLeft}>
                   <View
                     style={[
-                      styles.iconCircle,
-                      { backgroundColor: item.color + '18' },
+                      styles.iconDot,
+                      { backgroundColor: item.color + '1A' },
                     ]}
                   >
                     <MaterialCommunityIcons
@@ -213,35 +229,37 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
                 <MaterialCommunityIcons
                   name={'chevron-right' as any}
                   size={22}
-                  color={colors.textTertiary}
+                  color="#94A3B8"
                 />
               </TouchableOpacity>
             </React.Fragment>
           ))}
         </View>
 
-        {/* Log Out & Delete Account */}
-        <View style={styles.accountActions}>
-          <TouchableOpacity
-            style={styles.logoutCard}
-            onPress={signOut}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="logout" size={18} color={colors.error} />
-            <Text style={styles.logoutText}>{t('auth.logout')}</Text>
-          </TouchableOpacity>
+        {/* Logout */}
+        <TouchableOpacity
+          style={styles.logoutCard}
+          onPress={signOut}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name="logout"
+            size={18}
+            color={colors.error}
+          />
+          <Text style={styles.logoutText}>{t('auth.logout')}</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={handleDeleteAccount}
-            activeOpacity={0.5}
-          >
-            <MaterialCommunityIcons name="account-remove-outline" size={16} color={colors.textTertiary} />
-            <Text style={styles.deleteText}>{t('auth.deleteAccount')}</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Delete Account */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDeleteAccount}
+          activeOpacity={0.5}
+        >
+          <Text style={styles.deleteText}>{t('auth.deleteAccount')}</Text>
+        </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -252,69 +270,74 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
+    backgroundColor: '#F1F5F9',
   },
 
-  // Profile Section - Centered, no card
-  profileSection: {
+  // Hero Header
+  heroHeader: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    marginBottom: spacing.sm,
+    paddingBottom: 28,
   },
   avatarCircle: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: 12,
   },
   avatarText: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#047857',
   },
   profileName: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   profileRole: {
     fontSize: 14,
     fontWeight: '400',
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.5)',
     marginTop: 2,
     textAlign: 'center',
   },
   userIdRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
+    gap: 4,
+    marginTop: 8,
   },
   userId: {
     fontSize: 12,
-    color: colors.textTertiary,
+    color: 'rgba(255,255,255,0.3)',
+  },
+
+  // Light Section
+  lightSection: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
 
   // Stats Row
   statsRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: 10,
+    marginBottom: 24,
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -323,96 +346,97 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statNumber: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#1E293B',
   },
   statLabel: {
     fontSize: 11,
-    color: colors.textTertiary,
+    color: '#94A3B8',
     marginTop: 2,
   },
 
   // Section Label
   sectionLabel: {
     fontSize: 12,
-    color: colors.textTertiary,
+    color: '#94A3B8',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    marginBottom: spacing.sm,
-    marginLeft: spacing.xs,
+    marginBottom: 10,
+    marginLeft: 4,
   },
 
   // Settings Card
   settingsCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 12,
     shadowOpacity: 0.08,
     elevation: 3,
-    marginBottom: spacing.lg,
+    marginBottom: 16,
   },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: 12,
   },
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 14,
   },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  iconDot: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   settingLabel: {
     fontSize: 15,
     fontWeight: '400',
-    color: colors.textPrimary,
+    color: '#1E293B',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.borderLight,
-    marginLeft: 44 + spacing.md,
+    backgroundColor: '#F3F4F6',
+    marginLeft: 36 + 14,
   },
 
-  // Account Actions
-  accountActions: {
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
-  },
+  // Logout
   logoutCard: {
     flexDirection: 'row',
-    backgroundColor: colors.errorLight,
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
+    marginBottom: 12,
   },
   logoutText: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.error,
+    color: '#E5534B',
   },
+
+  // Delete Account
   deleteButton: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    gap: spacing.xs,
+    paddingVertical: 10,
   },
   deleteText: {
     fontSize: 13,
-    color: colors.textTertiary,
+    color: '#94A3B8',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,13 +7,16 @@ import {
   Alert,
   TouchableOpacity,
   Animated,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
+import { colors } from '../../../theme';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { insightsService, type InsightsData } from '../../../services/insights.service';
@@ -37,6 +40,7 @@ const DAYS_MAP: Record<PeriodKey, number> = {
 
 export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
   const { t } = useTranslation();
+  const ins = useSafeAreaInsets();
   const { activeRecipient } = useRecipientStore();
   const { language } = useSettingsStore();
   const [period, setPeriod] = useState<PeriodKey>('weekly');
@@ -59,10 +63,6 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
       setIsLoading(false);
     }
   }, [activeRecipient?.id, daysForPeriod]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   useFocusEffect(
     useCallback(() => {
@@ -89,176 +89,196 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
   const hasData = data && data.totalLogs > 0;
 
   const getAdherenceColor = (value: number) => {
-    if (value >= 80) return colors.success;
-    if (value >= 50) return colors.warning;
-    return colors.error;
+    if (value >= 80) return '#10B981';
+    if (value >= 50) return '#F59E0B';
+    return '#EF4444';
   };
 
   const periodLabel =
     period === 'daily' ? 'today' : period === 'weekly' ? 'this week' : 'this month';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={st.root}>
+      <StatusBar barStyle="light-content" />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refresh} />
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refresh}
+            tintColor="#FFF"
+          />
         }
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('insights.title')}</Text>
-        </View>
+        {/* ━━ DARK HERO ━━ */}
+        <LinearGradient
+          colors={['#064E3B', '#065F46', '#047857']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[st.hero, { paddingTop: ins.top + 20 }]}
+        >
+          {/* Decorative circles */}
+          <View style={st.decoCircle1} />
+          <View style={st.decoCircle2} />
 
-        {/* Period Pills */}
-        <View style={styles.periodContainer}>
-          <View style={styles.pillGroup}>
+          {/* Title */}
+          <Text style={st.heroTitle}>{t('insights.title')}</Text>
+
+          {/* Period Selector Pills */}
+          <View style={st.pillContainer}>
             {PERIODS.map((p) => {
               const isActive = period === p.key;
               return (
                 <TouchableOpacity
                   key={p.key}
-                  style={[styles.pill, isActive && styles.pillActive]}
+                  style={[st.pill, isActive && st.pillActive]}
                   onPress={() => setPeriod(p.key)}
                   activeOpacity={0.7}
                 >
-                  <Text
-                    style={[styles.pillText, isActive && styles.pillTextActive]}
-                  >
+                  <Text style={[st.pillText, isActive && st.pillTextActive]}>
                     {t(p.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-        </View>
 
-        {/* Content */}
-        {!hasData ? (
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <MaterialCommunityIcons
-                name={'chart-line' as any}
-                size={48}
-                color={colors.textTertiary}
-              />
+          {/* Hero Metric */}
+          {hasData ? (
+            <View style={st.heroMetric}>
+              <Text style={st.heroNumber}>{data.totalLogs}</Text>
+              <Text style={st.heroLabel}>care events {periodLabel}</Text>
             </View>
-            <Text style={styles.emptyText}>
-              {t('insights.noDataYet')}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.cardsContainer}>
-            {/* Hero Card - Total Logs */}
-            <View style={styles.heroCard}>
-              <Text style={styles.heroNumber}>{data.totalLogs}</Text>
-              <Text style={styles.heroLabel}>
-                care events {periodLabel}
+          ) : (
+            <View style={st.heroMetric}>
+              <Text style={st.heroNumber}>--</Text>
+              <Text style={st.heroLabel}>care events {periodLabel}</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        {/* ━━ LIGHT SECTION ━━ */}
+        <View style={st.lightSection}>
+          {!hasData ? (
+            /* Empty State */
+            <View style={st.emptyContainer}>
+              <View style={st.emptyIconWrap}>
+                <MaterialCommunityIcons
+                  name={'chart-line' as any}
+                  size={48}
+                  color="#94A3B8"
+                />
+              </View>
+              <Text style={st.emptyTitle}>{t('insights.noDataYet')}</Text>
+              <Text style={st.emptySub}>
+                Start logging care events to see trends and insights here.
               </Text>
             </View>
-
-            {/* Bathroom Visits */}
-            <PressableMetricCard
-              icon="toilet"
-              title={t('insights.bathroomVisits')}
-              color={colors.logBowel}
-            >
-              <TrendLineChart
-                data={data.bathroomTrend}
-                lineColor={colors.logBowel}
-              />
-            </PressableMetricCard>
-
-            {/* Fluid Intake */}
-            <PressableMetricCard
-              icon="cup-water"
-              title={t('insights.fluidIntake')}
-              color={colors.logUrination}
-            >
-              <TrendLineChart
-                data={data.fluidTrend}
-                lineColor={colors.logUrination}
-                suffix="ml"
-              />
-            </PressableMetricCard>
-
-            {/* Incontinence Events */}
-            <PressableMetricCard
-              icon="alert-circle"
-              title={t('insights.incontinenceEvents')}
-              color={colors.error}
-            >
-              <TrendLineChart
-                data={data.incontinenceTrend}
-                lineColor={colors.error}
-              />
-            </PressableMetricCard>
-
-            {/* Medication Adherence */}
-            <View style={styles.metricCard}>
-              <View style={styles.metricHeader}>
-                <View
-                  style={[
-                    styles.metricIconCircle,
-                    { backgroundColor: colors.logMedication + '15' },
-                  ]}
-                >
+          ) : (
+            <>
+              {/* Export Button */}
+              <TouchableOpacity
+                style={st.exportPill}
+                onPress={handleExport}
+                disabled={isExporting}
+                activeOpacity={0.7}
+              >
+                {isExporting ? (
+                  <ActivityIndicator size="small" color="#64748B" />
+                ) : (
                   <MaterialCommunityIcons
-                    name={'pill' as any}
-                    size={22}
-                    color={colors.logMedication}
+                    name={'file-pdf-box' as any}
+                    size={16}
+                    color="#64748B"
                   />
-                </View>
-                <Text style={styles.metricTitle}>
-                  {t('insights.medicationAdherence')}
-                </Text>
-              </View>
-              <View style={styles.adherenceContainer}>
-                <Text
-                  style={[
-                    styles.adherenceValue,
-                    { color: getAdherenceColor(data.medicationAdherence) },
-                  ]}
-                >
-                  {data.medicationAdherence}%
-                </Text>
-                <View style={styles.progressBarBg}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${data.medicationAdherence}%`,
-                        backgroundColor: getAdherenceColor(
-                          data.medicationAdherence
-                        ),
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
-            </View>
+                )}
+                <Text style={st.exportText}>{t('insights.exportReport')}</Text>
+              </TouchableOpacity>
 
-            {/* Export Button */}
-            <TouchableOpacity
-              style={styles.exportBtn}
-              onPress={handleExport}
-              disabled={isExporting}
-              activeOpacity={0.6}
-            >
-              <MaterialCommunityIcons
-                name={'download' as any}
-                size={16}
-                color={colors.textSecondary}
-              />
-              <Text style={styles.exportText}>
-                {t('insights.exportReport')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              {/* Metric Cards */}
+              <View style={st.cardsContainer}>
+                {/* Bathroom Visits */}
+                <PressableMetricCard
+                  icon="toilet"
+                  title={t('insights.bathroomVisits')}
+                  dotColor="#F59E0B"
+                >
+                  <TrendLineChart
+                    data={data.bathroomTrend}
+                    lineColor={colors.logBowel}
+                  />
+                </PressableMetricCard>
+
+                {/* Fluid Intake */}
+                <PressableMetricCard
+                  icon="cup-water"
+                  title={t('insights.fluidIntake')}
+                  dotColor="#3B82F6"
+                >
+                  <TrendLineChart
+                    data={data.fluidTrend}
+                    lineColor={colors.logUrination}
+                    suffix="ml"
+                  />
+                </PressableMetricCard>
+
+                {/* Incontinence Events */}
+                <PressableMetricCard
+                  icon="alert-circle"
+                  title={t('insights.incontinenceEvents')}
+                  dotColor="#EF4444"
+                >
+                  <TrendLineChart
+                    data={data.incontinenceTrend}
+                    lineColor={colors.error}
+                  />
+                </PressableMetricCard>
+
+                {/* Medication Adherence */}
+                <View style={st.card}>
+                  <View style={st.cardHeader}>
+                    <View style={[st.cardDot, { backgroundColor: '#8B5CF6' }]}>
+                      <MaterialCommunityIcons
+                        name={'pill' as any}
+                        size={14}
+                        color="#FFF"
+                      />
+                    </View>
+                    <Text style={st.cardTitle}>
+                      {t('insights.medicationAdherence')}
+                    </Text>
+                  </View>
+                  <View style={st.adherenceBody}>
+                    <Text
+                      style={[
+                        st.adherenceValue,
+                        { color: getAdherenceColor(data.medicationAdherence) },
+                      ]}
+                    >
+                      {data.medicationAdherence}%
+                    </Text>
+                    <View style={st.progressBarBg}>
+                      <View
+                        style={[
+                          st.progressBarFill,
+                          {
+                            width: `${data.medicationAdherence}%`,
+                            backgroundColor: getAdherenceColor(
+                              data.medicationAdherence
+                            ),
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </>
+          )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -269,12 +289,12 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
 function PressableMetricCard({
   icon,
   title,
-  color,
+  dotColor,
   children,
 }: {
   icon: string;
   title: string;
-  color: string;
+  dotColor: string;
   children: React.ReactNode;
 }) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
@@ -296,29 +316,24 @@ function PressableMetricCard({
 
   return (
     <Animated.View
-      style={[styles.metricCard, { transform: [{ scale: scaleAnim }] }]}
+      style={[st.card, { transform: [{ scale: scaleAnim }] }]}
     >
       <TouchableOpacity
         activeOpacity={1}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
       >
-        <View style={styles.metricHeader}>
-          <View
-            style={[
-              styles.metricIconCircle,
-              { backgroundColor: color + '15' },
-            ]}
-          >
+        <View style={st.cardHeader}>
+          <View style={[st.cardDot, { backgroundColor: dotColor }]}>
             <MaterialCommunityIcons
               name={icon as any}
-              size={22}
-              color={color}
+              size={14}
+              color="#FFF"
             />
           </View>
-          <Text style={styles.metricTitle}>{title}</Text>
+          <Text style={st.cardTitle}>{title}</Text>
         </View>
-        <View style={styles.metricBody}>{children}</View>
+        <View style={st.cardBody}>{children}</View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -328,37 +343,48 @@ function PressableMetricCard({
 /*  Styles                                                             */
 /* ------------------------------------------------------------------ */
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+const st = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#F1F5F9' },
+
+  /* ━━ HERO ━━ */
+  hero: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    overflow: 'hidden',
   },
-  scrollContent: {
-    paddingBottom: spacing.xxl,
+  decoCircle1: {
+    position: 'absolute',
+    top: -60,
+    right: -40,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  decoCircle2: {
+    position: 'absolute',
+    bottom: 20,
+    left: -60,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFF',
+    letterSpacing: -1,
+    marginBottom: 20,
   },
 
-  // Header
-  header: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-
-  // Period Pills
-  periodContainer: {
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  pillGroup: {
+  /* Period Pills */
+  pillContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 12,
     padding: 4,
+    marginBottom: 28,
   },
   pill: {
     flex: 1,
@@ -368,66 +394,65 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pillActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFF',
   },
   pillText: {
     fontSize: 14,
-    fontWeight: '400',
-    color: colors.textSecondary,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
   },
   pillTextActive: {
-    fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#064E3B',
+    fontWeight: '700',
   },
 
-  // Empty State
-  emptyContainer: {
+  /* Hero Metric */
+  heroMetric: {
     alignItems: 'center',
-    paddingTop: spacing.xxl * 2,
-    paddingHorizontal: spacing.xl,
-  },
-  emptyIconCircle: {
-    marginBottom: spacing.md,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-
-  // Cards
-  cardsContainer: {
-    paddingHorizontal: spacing.md,
-    gap: 16,
-  },
-
-  // Hero Card
-  heroCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 12,
-    shadowOpacity: 0.08,
-    elevation: 3,
   },
   heroNumber: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: -1.0,
+    fontSize: 56,
+    fontWeight: '800',
+    color: '#FFF',
+    letterSpacing: -2,
   },
   heroLabel: {
     fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 4,
+    color: 'rgba(255,255,255,0.45)',
+    marginTop: 2,
+    fontWeight: '500',
   },
 
-  // Metric Card
-  metricCard: {
-    backgroundColor: colors.surface,
+  /* ━━ LIGHT SECTION ━━ */
+  lightSection: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+
+  /* Export Pill */
+  exportPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 6,
+    backgroundColor: '#E2E8F0',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  exportText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+
+  /* Cards */
+  cardsContainer: {
+    gap: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
     shadowColor: '#000',
@@ -436,44 +461,44 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     elevation: 3,
   },
-  metricHeader: {
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
+    gap: 10,
+    marginBottom: 14,
   },
-  metricIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  cardDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  metricTitle: {
+  cardTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: '#1E293B',
     flex: 1,
   },
-  metricBody: {
+  cardBody: {
     marginLeft: 0,
   },
 
-  // Adherence
-  adherenceContainer: {
+  /* Adherence */
+  adherenceBody: {
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: 8,
   },
   adherenceValue: {
     fontSize: 36,
-    fontWeight: '700',
-    letterSpacing: -1.0,
-    marginBottom: spacing.md,
+    fontWeight: '800',
+    letterSpacing: -1.5,
+    marginBottom: 14,
   },
   progressBarBg: {
     width: '100%',
     height: 8,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: '#F1F5F9',
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -482,16 +507,32 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
 
-  // Export Button
-  exportBtn: {
-    flexDirection: 'row',
+  /* Empty State */
+  emptyContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.md,
+    paddingTop: 60,
+    paddingHorizontal: 32,
   },
-  exportText: {
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySub: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

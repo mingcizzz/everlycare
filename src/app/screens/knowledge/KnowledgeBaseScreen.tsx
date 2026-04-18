@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { knowledgeService, type Article } from '../../../services/knowledge.service';
 import type { MainTabScreenProps } from '../../../types/navigation';
@@ -38,6 +38,7 @@ export function KnowledgeBaseScreen({
 }: MainTabScreenProps<'Knowledge'>) {
   const { t } = useTranslation();
   const { language } = useSettingsStore();
+  const insets = useSafeAreaInsets();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -67,88 +68,88 @@ export function KnowledgeBaseScreen({
   const categories = Object.keys(CATEGORY_META);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('knowledge.title')}</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddArticle')}
-          activeOpacity={0.7}
-        >
-          <MaterialCommunityIcons
-            name={'plus' as any}
-            size={20}
-            color="#FFFFFF"
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Category Pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryBar}
+    <View style={styles.container}>
+      {/* Dark Hero Header */}
+      <LinearGradient
+        colors={['#064E3B', '#065F46', '#047857']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.heroHeader, { paddingTop: insets.top + 20 }]}
       >
-        {/* "All" chip */}
-        <TouchableOpacity
-          style={[
-            styles.chip,
-            !selectedCategory ? styles.chipActive : styles.chipInactive,
-          ]}
-          onPress={() => setSelectedCategory(null)}
-          activeOpacity={0.7}
-        >
-          <MaterialCommunityIcons
-            name={'view-grid' as any}
-            size={14}
-            color={!selectedCategory ? '#FFFFFF' : colors.primary}
-          />
-          <Text
-            style={[
-              styles.chipText,
-              !selectedCategory && styles.chipTextActive,
-            ]}
+        {/* Title Row */}
+        <View style={styles.titleRow}>
+          <Text style={styles.headerTitle}>Care Tips</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AddArticle')}
+            activeOpacity={0.7}
           >
-            {t('knowledge.all')}
-          </Text>
-        </TouchableOpacity>
+            <MaterialCommunityIcons
+              name={'plus' as any}
+              size={16}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        </View>
 
-        {categories.map((cat) => {
-          const meta = CATEGORY_META[cat];
-          const isActive = selectedCategory === cat;
-          return (
-            <TouchableOpacity
-              key={cat}
+        {/* Category Pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryBar}
+        >
+          {/* "All" chip */}
+          <TouchableOpacity
+            style={[
+              styles.chip,
+              !selectedCategory ? styles.chipActive : styles.chipInactive,
+            ]}
+            onPress={() => setSelectedCategory(null)}
+            activeOpacity={0.7}
+          >
+            <Text
               style={[
-                styles.chip,
-                isActive
-                  ? [styles.chipActive, { backgroundColor: meta.color }]
-                  : styles.chipInactive,
+                styles.chipText,
+                !selectedCategory
+                  ? styles.chipTextActive
+                  : styles.chipTextInactive,
               ]}
-              onPress={() => setSelectedCategory(cat)}
-              activeOpacity={0.7}
             >
-              <MaterialCommunityIcons
-                name={meta.icon as any}
-                size={14}
-                color={isActive ? '#FFFFFF' : meta.color}
-              />
-              <Text
-                style={[
-                  styles.chipText,
-                  isActive && styles.chipTextActive,
-                ]}
-              >
-                {t(CATEGORY_LABELS[cat])}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+              {t('knowledge.all')}
+            </Text>
+          </TouchableOpacity>
 
-      {/* Articles List */}
+          {categories.map((cat) => {
+            const isActive = selectedCategory === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.chip,
+                  isActive ? styles.chipActive : styles.chipInactive,
+                ]}
+                onPress={() => setSelectedCategory(cat)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.chipText,
+                    isActive
+                      ? styles.chipTextActive
+                      : styles.chipTextInactive,
+                  ]}
+                >
+                  {t(CATEGORY_LABELS[cat])}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </LinearGradient>
+
+      {/* Light Section */}
       <ScrollView
+        style={styles.lightSection}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -160,7 +161,7 @@ export function KnowledgeBaseScreen({
             <MaterialCommunityIcons
               name={'book-open-page-variant' as any}
               size={48}
-              color={colors.textTertiary}
+              color="#94A3B8"
             />
             <Text style={styles.emptyText}>{t('common.noData')}</Text>
           </View>
@@ -202,7 +203,7 @@ export function KnowledgeBaseScreen({
           })
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -254,7 +255,7 @@ function ArticleCard({
             <View
               style={[
                 styles.articleIconCircle,
-                { backgroundColor: meta.color + '15' },
+                { backgroundColor: meta.color + '1A' },
               ]}
             >
               <MaterialCommunityIcons
@@ -272,7 +273,7 @@ function ArticleCard({
               <Text style={styles.articlePreview} numberOfLines={2}>
                 {preview}
               </Text>
-              {/* Category Tag - bottom right */}
+              {/* Category Tag */}
               <View style={styles.categoryTagRow}>
                 <View style={{ flex: 1 }} />
                 <View
@@ -303,75 +304,78 @@ function ArticleCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F1F5F9',
   },
 
-  // Header
-  header: {
+  // Hero Header
+  heroHeader: {
+    paddingBottom: 20,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
   },
   addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   // Category Bar
   categoryBar: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.sm,
-    minHeight: 48,
+    paddingHorizontal: 20,
+    gap: 8,
   },
   chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   chipActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
   },
   chipInactive: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '400',
-    color: colors.textPrimary,
+    fontWeight: '500',
   },
   chipTextActive: {
-    color: '#FFFFFF',
+    color: '#064E3B',
     fontWeight: '600',
   },
+  chipTextInactive: {
+    color: 'rgba(255,255,255,0.7)',
+  },
 
-  // Content
+  // Light Section
+  lightSection: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+  },
   content: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xxl,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
     gap: 12,
   },
 
   // Article Card
   articleCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
     shadowColor: '#000',
@@ -382,7 +386,7 @@ const styles = StyleSheet.create({
   },
   articleRow: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: 14,
   },
   articleIconCircle: {
     width: 48,
@@ -398,19 +402,19 @@ const styles = StyleSheet.create({
   articleTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: '#1E293B',
     lineHeight: 22,
   },
   articlePreview: {
     fontSize: 13,
     fontWeight: '400',
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
+    color: '#64748B',
+    marginTop: 4,
     lineHeight: 18,
   },
   categoryTagRow: {
     flexDirection: 'row',
-    marginTop: spacing.sm,
+    marginTop: 8,
   },
   categoryTag: {
     paddingHorizontal: 8,
@@ -426,13 +430,13 @@ const styles = StyleSheet.create({
   // Empty State
   emptyContainer: {
     alignItems: 'center',
-    paddingTop: spacing.xxl * 2,
-    paddingHorizontal: spacing.xl,
+    paddingTop: 80,
+    paddingHorizontal: 24,
   },
   emptyText: {
     fontSize: 15,
-    color: colors.textSecondary,
+    color: '#64748B',
     textAlign: 'center',
-    marginTop: spacing.md,
+    marginTop: 12,
   },
 });
