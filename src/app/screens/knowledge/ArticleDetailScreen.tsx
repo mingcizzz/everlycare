@@ -91,8 +91,8 @@ export function ArticleDetailScreen({
 
 /** Parses text with \n into paragraphs, numbered lists, and bullet points */
 function FormattedContent({ text }: { text: string }) {
-  // Normalize: replace literal "\n" strings with actual newlines
-  const normalized = text.replace(/\\n/g, '\n');
+  // Normalize: replace literal "\n" strings (single and double escaped) with actual newlines
+  const normalized = text.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
 
   // Split by double newline for paragraphs
   const paragraphs = normalized.split(/\n\n+/);

@@ -15,8 +15,8 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const TAB_ICONS: Record<keyof MainTabParamList, { focused: string; unfocused: string }> = {
   Home: { focused: 'home', unfocused: 'home-outline' },
   Log: { focused: 'plus-circle', unfocused: 'plus-circle-outline' },
-  Insights: { focused: 'chart-line', unfocused: 'chart-line-variant' },
-  Knowledge: { focused: 'book-open-variant', unfocused: 'book-open-outline' },
+  Insights: { focused: 'chart-bar', unfocused: 'chart-line' },
+  Knowledge: { focused: 'lightbulb', unfocused: 'lightbulb-outline' },
   Profile: { focused: 'account', unfocused: 'account-outline' },
 };
 
@@ -34,8 +34,8 @@ export function MainTabNavigator() {
             color={color}
           />
         ),
-        tabBarActiveTintColor: '#FF9E64',
-        tabBarInactiveTintColor: 'rgba(26, 35, 126, 0.4)',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textDisabled,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 0,
