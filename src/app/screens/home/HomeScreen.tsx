@@ -18,7 +18,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
-import { colors, spacing, borderRadius, shadows, logBackgrounds } from '../../../theme';
+import { colors, spacing, borderRadius, shadows } from '../../../theme';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
 import { QuickLogSheet } from '../log/QuickLogSheet';
 import { getToday } from '../../../utils/date';
@@ -28,7 +28,6 @@ import type { LogType } from '../../../types/careLog';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_GAP = 12;
 const GRID_PADDING = 20;
-const STAT_CARD_WIDTH = (SCREEN_WIDTH - GRID_PADDING * 2 - CARD_GAP) / 2;
 
 const RING_SIZE = 120;
 const RING_STROKE = 8;
@@ -36,71 +35,71 @@ const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const TARGET_LOGS = 8;
 
-function getGreeting(): { text: string; emoji: string } {
+function getGreetingIcon(): { text: string; icon: string } {
   const hour = new Date().getHours();
-  if (hour < 12) return { text: 'Good morning', emoji: '\u2600\uFE0F' };
-  if (hour < 18) return { text: 'Good afternoon', emoji: '\uD83C\uDF24' };
-  return { text: 'Good evening', emoji: '\uD83C\uDF19' };
+  if (hour < 12) return { text: 'Good morning', icon: 'weather-sunny' };
+  if (hour < 18) return { text: 'Good afternoon', icon: 'weather-partly-cloudy' };
+  return { text: 'Good evening', icon: 'weather-night' };
 }
 
-/* ── Quick Action Pill ── */
+/* Quick Action Pill */
 interface QuickActionProps {
-  emoji: string;
+  icon: string;
+  iconColor: string;
   label: string;
   onPress: () => void;
 }
 
-function QuickActionPill({ emoji, label, onPress }: QuickActionProps) {
+function QuickActionPill({ icon, iconColor, label, onPress }: QuickActionProps) {
   return (
     <TouchableOpacity
       style={styles.quickPill}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.quickPillEmoji}>{emoji}</Text>
+      <MaterialCommunityIcons name={icon as any} size={18} color={iconColor} />
       <Text style={styles.quickPillLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-/* ── Stat Card ── */
+/* Stat Card */
 interface StatCardProps {
-  emoji: string;
+  icon: string;
+  iconColor: string;
   bgColor: string;
   value: string;
   label: string;
 }
 
-function StatCard({ emoji, bgColor, value, label }: StatCardProps) {
+function StatCard({ icon, iconColor, bgColor, value, label }: StatCardProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const onPressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.96,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
-
-  const onPressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
 
   return (
     <Animated.View style={[styles.statCard, { transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
         activeOpacity={1}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
+        onPressIn={() => {
+          Animated.spring(scaleAnim, {
+            toValue: 0.95,
+            useNativeDriver: true,
+            speed: 50,
+            bounciness: 4,
+          }).start();
+        }}
+        onPressOut={() => {
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 50,
+            bounciness: 4,
+          }).start();
+        }}
         style={[styles.statCardInner, { backgroundColor: bgColor }]}
       >
-        <Text style={styles.statEmoji}>{emoji}</Text>
+        <View style={[styles.statIconCircle, { backgroundColor: iconColor + '20' }]}>
+          <MaterialCommunityIcons name={icon as any} size={22} color={iconColor} />
+        </View>
         <View style={styles.statBottom}>
           <Text style={styles.statValue}>{value}</Text>
           <Text style={styles.statLabel} numberOfLines={1}>{label}</Text>
@@ -110,7 +109,7 @@ function StatCard({ emoji, bgColor, value, label }: StatCardProps) {
   );
 }
 
-/* ── Home Screen ── */
+/* Home Screen */
 export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -120,7 +119,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const [quickLogType, setQuickLogType] = useState<LogType | null>(null);
 
   const today = getToday();
-  const greeting = getGreeting();
+  const greeting = getGreetingIcon();
 
   const refresh = useCallback(async () => {
     await loadRecipients();
@@ -138,7 +137,6 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     }, [refresh])
   );
 
-  // Care completion ring progress
   const totalLogs = dailySummary?.totalLogs ?? 0;
   const progress = Math.min(1, totalLogs / Math.max(1, TARGET_LOGS));
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
@@ -152,7 +150,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* ── 1. Hero Section ── */}
+        {/* 1. Hero */}
         <LinearGradient
           colors={['#0D9488', '#0A7B71']}
           start={{ x: 0, y: 0 }}
@@ -160,25 +158,26 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           style={styles.hero}
         >
           <View style={styles.heroContent}>
-            {/* Left side — greeting & info */}
             <View style={styles.heroLeft}>
-              <Text style={styles.heroGreeting}>
-                {greeting.text} {greeting.emoji}
-              </Text>
+              <View style={styles.greetingRow}>
+                <MaterialCommunityIcons name={greeting.icon as any} size={16} color="rgba(255,255,255,0.8)" />
+                <Text style={styles.heroGreeting}>{greeting.text}</Text>
+              </View>
               <Text style={styles.heroName}>
                 {user?.displayName || t('common.appName')}
               </Text>
               {activeRecipient && (
-                <Text style={styles.heroCaringFor}>
-                  Caring for {activeRecipient.name} {'\uD83D\uDC9A'}
-                </Text>
+                <View style={styles.caringForRow}>
+                  <MaterialCommunityIcons name="heart" size={14} color="rgba(255,255,255,0.5)" />
+                  <Text style={styles.heroCaringFor}>
+                    {t('home.caringFor', { name: activeRecipient.name })}
+                  </Text>
+                </View>
               )}
             </View>
 
-            {/* Right side — progress ring */}
             <View style={styles.heroRight}>
               <Svg width={RING_SIZE} height={RING_SIZE}>
-                {/* Track */}
                 <Circle
                   cx={RING_SIZE / 2}
                   cy={RING_SIZE / 2}
@@ -187,7 +186,6 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
                   strokeWidth={RING_STROKE}
                   fill="none"
                 />
-                {/* Progress arc */}
                 <Circle
                   cx={RING_SIZE / 2}
                   cy={RING_SIZE / 2}
@@ -210,57 +208,63 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           </View>
         </LinearGradient>
 
-        {/* ── 2. Quick Actions Row ── */}
+        {/* 2. Quick Actions */}
         <View style={styles.quickActionsRow}>
           <QuickActionPill
-            emoji="\uD83D\uDEBD"
-            label="Bowel"
+            icon="toilet"
+            iconColor={colors.logBowel}
+            label={t('careLog.bowel')}
             onPress={() => setQuickLogType('bowel')}
           />
           <QuickActionPill
-            emoji="\uD83D\uDCA7"
-            label="Fluid"
+            icon="water"
+            iconColor={colors.logUrination}
+            label={t('meal.fluid')}
             onPress={() => setQuickLogType('urination')}
           />
           <QuickActionPill
-            emoji="\uD83D\uDC8A"
-            label="Meds"
+            icon="pill"
+            iconColor={colors.logMedication}
+            label={t('careLog.medication')}
             onPress={() => setQuickLogType('medication')}
           />
           <QuickActionPill
-            emoji="\uD83C\uDF7D"
-            label="Meal"
+            icon="food-apple"
+            iconColor={colors.logMeal}
+            label={t('careLog.meal')}
             onPress={() => setQuickLogType('meal')}
           />
         </View>
 
-        {/* ── 3. Stats Grid (Bento) ── */}
+        {/* 3. Stats Grid */}
         <View style={styles.statsGrid}>
-          {/* Top row */}
           <View style={styles.statsRow}>
             <StatCard
-              emoji="\uD83D\uDEBF"
+              icon="toilet"
+              iconColor={colors.logBowel}
               bgColor="#FEF3C7"
               value={`${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`}
               label={t('insights.bathroomVisits')}
             />
             <StatCard
-              emoji="\uD83D\uDCA7"
+              icon="cup-water"
+              iconColor={colors.logUrination}
               bgColor="#DBEAFE"
               value={`${dailySummary?.fluidTotalMl ?? 0}ml`}
               label={t('insights.fluidIntake')}
             />
           </View>
-          {/* Bottom row */}
           <View style={styles.statsRow}>
             <StatCard
-              emoji="\uD83D\uDC8A"
+              icon="pill"
+              iconColor={colors.logMedication}
               bgColor="#F3E8FF"
               value={`${dailySummary?.medicationsTaken ?? 0}`}
               label={t('medication.taken')}
             />
             <StatCard
-              emoji="\uD83C\uDF4E"
+              icon="food-apple"
+              iconColor={colors.logMeal}
               bgColor="#DCFCE7"
               value={`${dailySummary?.mealCount ?? 0}`}
               label={t('careLog.meal')}
@@ -268,15 +272,15 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           </View>
         </View>
 
-        {/* ── 4. Timeline ── */}
+        {/* 4. Timeline */}
         <View style={styles.timelineSection}>
           <View style={styles.timelineHeader}>
-            <Text style={styles.sectionTitle}>Recent Activity</Text>
+            <Text style={styles.sectionTitle}>{t('home.timeline')}</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Log')}
               activeOpacity={0.7}
             >
-              <Text style={styles.seeAllLink}>See all \u2192</Text>
+              <Text style={styles.seeAllLink}>{t('common.seeAll')}</Text>
             </TouchableOpacity>
           </View>
           {logs.length > 0 ? (
@@ -285,23 +289,19 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
             <View style={styles.emptyTimeline}>
               <View style={styles.emptyIconCircle}>
                 <MaterialCommunityIcons
-                  name="clipboard-text-clock-outline"
-                  size={48}
+                  name="notebook-outline"
+                  size={40}
                   color={colors.textTertiary}
                 />
               </View>
-              <Text style={styles.emptyText}>
-                {t('home.noLogsYet', { defaultValue: 'No logs yet today' })}
-              </Text>
-              <Text style={styles.emptySubtext}>
-                {t('home.tapToStart', { defaultValue: 'Tap + to start logging care' })}
-              </Text>
+              <Text style={styles.emptyText}>{t('home.noLogsToday')}</Text>
+              <Text style={styles.emptySubtext}>{t('home.addFirstLog')}</Text>
             </View>
           )}
         </View>
       </ScrollView>
 
-      {/* ── 5. FAB ── */}
+      {/* FAB */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate('Log')}
@@ -310,7 +310,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Quick Log Bottom Sheet */}
+      {/* Quick Log Sheet */}
       {quickLogType && activeRecipient && (
         <QuickLogSheet
           logType={quickLogType}
@@ -329,16 +329,16 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFB',
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingBottom: 100,
   },
 
-  /* ── 1. Hero ── */
+  /* Hero */
   hero: {
     marginHorizontal: 16,
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     borderRadius: 28,
     padding: 24,
   },
@@ -351,21 +351,31 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
   },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   heroGreeting: {
     fontSize: 14,
     fontWeight: '400',
     color: 'rgba(255,255,255,0.8)',
-    marginBottom: 6,
   },
   heroName: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: -0.5,
     marginBottom: 6,
   },
+  caringForRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   heroCaringFor: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '400',
     color: 'rgba(255,255,255,0.6)',
   },
@@ -393,13 +403,13 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
 
-  /* ── 2. Quick Actions ── */
+  /* Quick Actions */
   quickActionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginHorizontal: GRID_PADDING,
     marginTop: 20,
-    gap: 10,
+    gap: 8,
   },
   quickPill: {
     flex: 1,
@@ -409,24 +419,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: borderRadius.full,
     paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  quickPillEmoji: {
-    fontSize: 16,
-    marginRight: 4,
+    gap: 4,
   },
   quickPillLabel: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.textPrimary,
   },
 
-  /* ── 3. Stats Grid ── */
+  /* Stats Grid */
   statsGrid: {
     marginHorizontal: GRID_PADDING,
-    marginTop: 20,
+    marginTop: 16,
     gap: CARD_GAP,
   },
   statsRow: {
@@ -435,7 +442,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    height: 110,
+    height: 120,
     borderRadius: 20,
     ...shadows.md,
   },
@@ -446,26 +453,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     overflow: 'hidden',
   },
-  statEmoji: {
-    fontSize: 28,
+  statIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statBottom: {
     marginTop: 'auto',
   },
   statValue: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     color: '#1E293B',
     letterSpacing: -0.5,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '400',
     color: '#64748B',
     marginTop: 2,
   },
 
-  /* ── 4. Timeline ── */
+  /* Timeline */
   timelineSection: {
     marginTop: 24,
     marginHorizontal: GRID_PADDING,
@@ -493,9 +504,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: colors.surfaceSecondary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -513,11 +524,11 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  /* ── 5. FAB ── */
+  /* FAB */
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
