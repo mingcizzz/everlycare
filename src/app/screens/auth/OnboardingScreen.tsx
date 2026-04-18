@@ -13,6 +13,7 @@ import { Text, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Svg, { Path as SvgPath } from 'react-native-svg';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { spacing, typography } from '../../../theme';
 
@@ -80,11 +81,12 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           {/* Icon */}
           <View style={styles.iconContainer}>
             <View style={styles.iconCircle}>
-              <MaterialCommunityIcons
-                name="account-heart"
-                size={48}
-                color="#FFFFFF"
-              />
+              <Svg width={44} height={50} viewBox="0 0 44 50">
+                <SvgPath d="M22 26 C20.5 24.8, 16 21, 12 16.5 C7.5 11.5, 4 7, 4 2.5 C4 -2.5, 7.5 -5.5, 12 -5.5 C15.5 -5.5, 19 -3.5, 22 -0.5 C25 -3.5, 28.5 -5.5, 32 -5.5 C36.5 -5.5, 40 -2.5, 40 2.5 C40 7, 36.5 11.5, 32 16.5 C28 21, 23.5 24.8, 22 26Z"
+                  fill="#FFFFFF" transform="translate(0, 8)" />
+                <SvgPath d="M6 40 C10 44.5, 16 46.5, 22 46.5 C28 46.5, 34 44.5, 38 40"
+                  fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
+              </Svg>
             </View>
           </View>
 
