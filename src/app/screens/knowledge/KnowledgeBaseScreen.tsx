@@ -312,8 +312,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   headerTitle: {
     fontSize: 28,
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
   // Category Bar
   categoryBar: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
+    paddingVertical: spacing.sm,
     gap: spacing.sm,
+    minHeight: 48,
   },
   chip: {
     flexDirection: 'row',

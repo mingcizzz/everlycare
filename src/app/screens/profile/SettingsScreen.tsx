@@ -220,23 +220,26 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
           ))}
         </View>
 
-        {/* Log Out Card */}
-        <TouchableOpacity
-          style={styles.logoutCard}
-          onPress={signOut}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.logoutText}>{t('auth.logout')}</Text>
-        </TouchableOpacity>
+        {/* Log Out & Delete Account */}
+        <View style={styles.accountActions}>
+          <TouchableOpacity
+            style={styles.logoutCard}
+            onPress={signOut}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="logout" size={18} color={colors.error} />
+            <Text style={styles.logoutText}>{t('auth.logout')}</Text>
+          </TouchableOpacity>
 
-        {/* Delete Account */}
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={handleDeleteAccount}
-          activeOpacity={0.5}
-        >
-          <Text style={styles.deleteText}>{t('auth.deleteAccount')}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteAccount}
+            activeOpacity={0.5}
+          >
+            <MaterialCommunityIcons name="account-remove-outline" size={16} color={colors.textTertiary} />
+            <Text style={styles.deleteText}>{t('auth.deleteAccount')}</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -253,15 +256,15 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
   },
 
   // Profile Section - Centered, no card
   profileSection: {
     alignItems: 'center',
-    paddingVertical: spacing.lg,
-    marginBottom: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.sm,
   },
   avatarCircle: {
     width: 72,
@@ -382,29 +385,31 @@ const styles = StyleSheet.create({
     marginLeft: 44 + spacing.md,
   },
 
-  // Log Out
+  // Account Actions
+  accountActions: {
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
   logoutCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    paddingVertical: spacing.md,
+    flexDirection: 'row',
+    backgroundColor: colors.errorLight,
+    borderRadius: 16,
+    paddingVertical: 14,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 12,
-    shadowOpacity: 0.08,
-    elevation: 3,
-    marginBottom: spacing.md,
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: colors.error,
   },
-
-  // Delete Account
   deleteButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    justifyContent: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
   },
   deleteText: {
     fontSize: 13,
