@@ -5,21 +5,49 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Chip } from 'react-native-paper';
+import { Text, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../../theme';
 import { useCareLogStore } from '../../../store/careLogStore';
-import { GradientButton } from '../../../components/ui/GradientCard';
-import type { LogType, LogData } from '../../../types/careLog';
+import { LOG_TYPE_CONFIG, type LogType, type LogData } from '../../../types/careLog';
 
 interface QuickLogSheetProps {
   logType: LogType;
   recipientId: string;
   onDismiss: () => void;
   onSaved: () => void;
+}
+
+interface ChipOptionProps {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}
+
+function ChipOption({ label, selected, onPress }: ChipOptionProps) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={[
+        styles.chip,
+        selected ? styles.chipSelected : styles.chipUnselected,
+      ]}
+    >
+      <Text
+        style={[
+          styles.chipText,
+          selected ? styles.chipTextSelected : styles.chipTextUnselected,
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 }
 
 export function QuickLogSheet({
@@ -32,6 +60,9 @@ export function QuickLogSheet({
   const { addLog } = useCareLogStore();
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const config = LOG_TYPE_CONFIG[logType];
+  const bgColor = logBackgrounds[logType] || colors.surfaceSecondary;
 
   // Form state varies by log type
   const [bowelType, setBowelType] = useState<'normal' | 'diarrhea' | 'constipation'>('normal');
@@ -98,90 +129,73 @@ export function QuickLogSheet({
     }
   };
 
+  const renderSectionLabel = (label: string) => (
+    <Text style={styles.sectionLabel}>{label}</Text>
+  );
+
   const renderForm = () => {
     switch (logType) {
       case 'bowel':
         return (
           <>
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logBowel }]} />
-              <Text style={styles.fieldLabel}>{t('bowel.type')}</Text>
-            </View>
+            {renderSectionLabel(t('bowel.type'))}
             <View style={styles.chipRow}>
               {(['normal', 'diarrhea', 'constipation'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`bowel.${v}`)}
                   selected={bowelType === v}
                   onPress={() => setBowelType(v)}
-                  style={styles.chip}
-                >
-                  {t(`bowel.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
 
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logBowel }]} />
-              <Text style={styles.fieldLabel}>{t('bowel.location')}</Text>
-            </View>
+            {renderSectionLabel(t('bowel.location'))}
             <View style={styles.chipRow}>
               {(['toilet', 'diaper', 'other'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`bowel.${v}`)}
                   selected={bowelLocation === v}
                   onPress={() => setBowelLocation(v)}
-                  style={styles.chip}
-                >
-                  {t(`bowel.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
 
-            <Chip
-              selected={isAccident}
-              onPress={() => setIsAccident(!isAccident)}
-              style={styles.chip}
-              icon={isAccident ? 'alert' : undefined}
-            >
-              {t('bowel.accident')}
-            </Chip>
+            <View style={styles.chipRow}>
+              <ChipOption
+                label={t('bowel.accident')}
+                selected={isAccident}
+                onPress={() => setIsAccident(!isAccident)}
+              />
+            </View>
           </>
         );
 
       case 'urination':
         return (
           <>
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logUrination }]} />
-              <Text style={styles.fieldLabel}>{t('urination.title')}</Text>
-            </View>
+            {renderSectionLabel(t('urination.title'))}
             <View style={styles.chipRow}>
               {(['planned', 'spontaneous', 'accident'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`urination.${v}`)}
                   selected={urinationMethod === v}
                   onPress={() => setUrinationMethod(v)}
-                  style={styles.chip}
-                >
-                  {t(`urination.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
 
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logUrination }]} />
-              <Text style={styles.fieldLabel}>{t('urination.volume')}</Text>
-            </View>
+            {renderSectionLabel(t('urination.volume'))}
             <View style={styles.chipRow}>
               {(['small', 'medium', 'large'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`urination.${v}`)}
                   selected={volume === v}
                   onPress={() => setVolume(v)}
-                  style={styles.chip}
-                >
-                  {t(`urination.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
           </>
@@ -190,20 +204,15 @@ export function QuickLogSheet({
       case 'meal':
         return (
           <>
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMeal }]} />
-              <Text style={styles.fieldLabel}>{t('meal.title')}</Text>
-            </View>
+            {renderSectionLabel(t('meal.title'))}
             <View style={styles.chipRow}>
               {(['breakfast', 'lunch', 'dinner', 'snack', 'fluid'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`meal.${v}`)}
                   selected={mealType === v}
                   onPress={() => setMealType(v)}
-                  style={styles.chip}
-                >
-                  {t(`meal.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
 
@@ -215,6 +224,7 @@ export function QuickLogSheet({
                 keyboardType="numeric"
                 mode="outlined"
                 style={styles.input}
+                outlineStyle={styles.inputOutline}
               />
             ) : (
               <>
@@ -224,21 +234,17 @@ export function QuickLogSheet({
                   onChangeText={setMealDescription}
                   mode="outlined"
                   style={styles.input}
+                  outlineStyle={styles.inputOutline}
                 />
-                <View style={styles.fieldLabelRow}>
-                  <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMeal }]} />
-                  <Text style={styles.fieldLabel}>{t('meal.appetite')}</Text>
-                </View>
+                {renderSectionLabel(t('meal.appetite'))}
                 <View style={styles.chipRow}>
                   {(['good', 'fair', 'poor'] as const).map((v) => (
-                    <Chip
+                    <ChipOption
                       key={v}
+                      label={t(`meal.${v}`)}
                       selected={appetite === v}
                       onPress={() => setAppetite(v)}
-                      style={styles.chip}
-                    >
-                      {t(`meal.${v}`)}
-                    </Chip>
+                    />
                   ))}
                 </View>
               </>
@@ -255,17 +261,17 @@ export function QuickLogSheet({
               onChangeText={setMedName}
               mode="outlined"
               style={styles.input}
+              outlineStyle={styles.inputOutline}
             />
+            {renderSectionLabel(t('medication.status', { defaultValue: 'Status' }))}
             <View style={styles.chipRow}>
               {(['taken', 'missed', 'skipped'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`medication.${v}`)}
                   selected={medStatus === v}
                   onPress={() => setMedStatus(v)}
-                  style={styles.chip}
-                >
-                  {t(`medication.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
           </>
@@ -274,37 +280,27 @@ export function QuickLogSheet({
       case 'mood':
         return (
           <>
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMood }]} />
-              <Text style={styles.fieldLabel}>{t('mood.title')}</Text>
-            </View>
+            {renderSectionLabel(t('mood.title'))}
             <View style={styles.chipRow}>
               {(['calm', 'happy', 'anxious', 'agitated', 'confused', 'sad'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`mood.${v}`)}
                   selected={mood === v}
                   onPress={() => setMood(v)}
-                  style={styles.chip}
-                >
-                  {t(`mood.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
 
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logMood }]} />
-              <Text style={styles.fieldLabel}>{t('mood.sleepQuality')}</Text>
-            </View>
+            {renderSectionLabel(t('mood.sleepQuality'))}
             <View style={styles.chipRow}>
               {(['good', 'fair', 'poor'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`mood.sleep${v.charAt(0).toUpperCase() + v.slice(1)}` as any)}
                   selected={sleepQuality === v}
                   onPress={() => setSleepQuality(v)}
-                  style={styles.chip}
-                >
-                  {t(`mood.sleep${v.charAt(0).toUpperCase() + v.slice(1)}` as any)}
-                </Chip>
+                />
               ))}
             </View>
           </>
@@ -313,20 +309,15 @@ export function QuickLogSheet({
       case 'hygiene':
         return (
           <>
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logHygiene }]} />
-              <Text style={styles.fieldLabel}>{t('hygiene.title')}</Text>
-            </View>
+            {renderSectionLabel(t('hygiene.title'))}
             <View style={styles.chipRow}>
               {(['bathing', 'clothingChange', 'skinCheck', 'oralCare'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`hygiene.${v}`)}
                   selected={hygieneType === v}
                   onPress={() => setHygieneType(v)}
-                  style={styles.chip}
-                >
-                  {t(`hygiene.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
           </>
@@ -335,20 +326,15 @@ export function QuickLogSheet({
       case 'activity':
         return (
           <>
-            <View style={styles.fieldLabelRow}>
-              <View style={[styles.fieldLabelBorder, { backgroundColor: colors.logActivity }]} />
-              <Text style={styles.fieldLabel}>{t('activity.title')}</Text>
-            </View>
+            {renderSectionLabel(t('activity.title'))}
             <View style={styles.chipRow}>
               {(['walking', 'exercise', 'social', 'cognitive', 'rest'] as const).map((v) => (
-                <Chip
+                <ChipOption
                   key={v}
+                  label={t(`activity.${v}`)}
                   selected={activityType === v}
                   onPress={() => setActivityType(v)}
-                  style={styles.chip}
-                >
-                  {t(`activity.${v}`)}
-                </Chip>
+                />
               ))}
             </View>
 
@@ -359,6 +345,7 @@ export function QuickLogSheet({
               keyboardType="numeric"
               mode="outlined"
               style={styles.input}
+              outlineStyle={styles.inputOutline}
             />
           </>
         );
@@ -379,21 +366,33 @@ export function QuickLogSheet({
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onDismiss} />
         <View style={styles.sheet}>
+          {/* Handle */}
           <View style={styles.handleContainer}>
-            <LinearGradient
-              colors={[colors.gradientStart, colors.gradientEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.handle}
-            />
+            <View style={styles.handle} />
           </View>
-          <ScrollView style={styles.sheetContent} keyboardShouldPersistTaps="handled">
-            <Text style={styles.sheetTitle}>
-              {t(`careLog.${logType}`)}
-            </Text>
+
+          <ScrollView
+            style={styles.sheetContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Title row with icon */}
+            <View style={styles.titleRow}>
+              <View style={[styles.titleIconCircle, { backgroundColor: bgColor }]}>
+                <MaterialCommunityIcons
+                  name={config.icon as any}
+                  size={18}
+                  color={config.color}
+                />
+              </View>
+              <Text style={styles.sheetTitle}>
+                {t(`careLog.${logType}`)}
+              </Text>
+            </View>
 
             {renderForm()}
 
+            {/* Notes input */}
             <TextInput
               label={t('careLog.addNote')}
               value={notes}
@@ -401,16 +400,23 @@ export function QuickLogSheet({
               mode="outlined"
               multiline
               numberOfLines={3}
-              style={[styles.input, { marginTop: spacing.md }]}
+              style={[styles.input, { marginTop: spacing.lg }]}
+              outlineStyle={styles.inputOutline}
             />
 
-            <GradientButton
-              label={t('common.save')}
+            {/* Save button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
               onPress={handleSave}
-              loading={isLoading}
               disabled={isLoading}
-              style={styles.saveButton}
-            />
+              style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.textOnPrimary} size="small" />
+              ) : (
+                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
+              )}
+            </TouchableOpacity>
           </ScrollView>
         </View>
       </View>
@@ -425,7 +431,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   sheet: {
     backgroundColor: colors.surface,
@@ -436,37 +442,41 @@ const styles = StyleSheet.create({
   },
   handleContainer: {
     alignItems: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
+    paddingTop: spacing.sm + 4,
+    paddingBottom: spacing.sm,
   },
   handle: {
-    width: 60,
+    width: 36,
     height: 4,
     borderRadius: 2,
+    backgroundColor: colors.borderLight,
   },
   sheetContent: {
     paddingHorizontal: spacing.lg,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm + 4,
+    marginBottom: spacing.lg,
+  },
+  titleIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   sheetTitle: {
     ...typography.h3,
     color: colors.textPrimary,
-    marginBottom: spacing.md,
   },
-  fieldLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-    gap: spacing.sm,
-  },
-  fieldLabelBorder: {
-    width: 4,
-    height: 20,
-    borderRadius: 2,
-  },
-  fieldLabel: {
+  sectionLabel: {
     ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   chipRow: {
     flexDirection: 'row',
@@ -474,14 +484,51 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
-    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     borderRadius: borderRadius.full,
+    marginBottom: spacing.xs,
+  },
+  chipSelected: {
+    backgroundColor: colors.primary,
+  },
+  chipUnselected: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  chipTextSelected: {
+    color: colors.textOnPrimary,
+  },
+  chipTextUnselected: {
+    color: colors.textPrimary,
   },
   input: {
     backgroundColor: colors.surface,
+    marginTop: spacing.sm,
+  },
+  inputOutline: {
+    borderRadius: borderRadius.md,
   },
   saveButton: {
-    marginTop: spacing.lg,
+    backgroundColor: colors.primary,
     borderRadius: borderRadius.xl,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
+    ...typography.subtitle,
+    color: colors.textOnPrimary,
+    fontSize: 16,
   },
 });

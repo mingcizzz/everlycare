@@ -17,7 +17,8 @@
     "noData": "No data yet",
     "today": "Today",
     "yesterday": "Yesterday",
-    "settings": "Settings"
+    "settings": "Settings",
+    "seeAll": "See All"
   },
   "auth": {
     "login": "Log In",

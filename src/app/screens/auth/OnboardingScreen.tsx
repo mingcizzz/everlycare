@@ -6,14 +6,15 @@ import {
   Platform,
   ScrollView,
   Alert,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Chip } from 'react-native-paper';
+import { Text, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
-import { GradientButton } from '../../../components/ui/GradientCard';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -32,7 +33,6 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const { addRecipient } = useRecipientStore();
 
-  const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | undefined>();
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -42,7 +42,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 
   const toggleCondition = (c: string) => {
     setConditions((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
     );
   };
 
@@ -75,18 +75,24 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
+          {/* Icon */}
           <View style={styles.iconContainer}>
-            <MaterialCommunityIcons
-              name="account-heart"
-              size={64}
-              color={colors.primary}
-            />
+            <View style={styles.iconCircle}>
+              <MaterialCommunityIcons
+                name="account-heart"
+                size={48}
+                color={colors.textOnPrimary}
+              />
+            </View>
           </View>
 
+          {/* Header */}
           <Text style={styles.title}>{t('recipient.addNew')}</Text>
           <Text style={styles.subtitle}>{t('onboarding.trackDesc')}</Text>
 
+          {/* Form */}
           <View style={styles.form}>
             <TextInput
               label={t('recipient.name')}
@@ -96,24 +102,60 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               style={styles.input}
               outlineColor={colors.border}
               activeOutlineColor={colors.primary}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="account-outline" />}
             />
 
+            {/* Gender chips */}
             <Text style={styles.fieldLabel}>{t('recipient.gender')}</Text>
             <View style={styles.chipRow}>
-              <Chip
-                selected={gender === 'male'}
+              <TouchableOpacity
+                style={[
+                  styles.chip,
+                  gender === 'male' && styles.chipSelected,
+                ]}
                 onPress={() => setGender('male')}
-                style={styles.chip}
+                activeOpacity={0.7}
               >
-                {t('recipient.male')}
-              </Chip>
-              <Chip
-                selected={gender === 'female'}
+                <MaterialCommunityIcons
+                  name="gender-male"
+                  size={18}
+                  color={gender === 'male' ? colors.textOnPrimary : colors.textSecondary}
+                  style={styles.chipIcon}
+                />
+                <Text
+                  style={[
+                    styles.chipText,
+                    gender === 'male' && styles.chipTextSelected,
+                  ]}
+                >
+                  {t('recipient.male')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.chip,
+                  gender === 'female' && styles.chipSelected,
+                ]}
                 onPress={() => setGender('female')}
-                style={styles.chip}
+                activeOpacity={0.7}
               >
-                {t('recipient.female')}
-              </Chip>
+                <MaterialCommunityIcons
+                  name="gender-female"
+                  size={18}
+                  color={gender === 'female' ? colors.textOnPrimary : colors.textSecondary}
+                  style={styles.chipIcon}
+                />
+                <Text
+                  style={[
+                    styles.chipText,
+                    gender === 'female' && styles.chipTextSelected,
+                  ]}
+                >
+                  {t('recipient.female')}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <TextInput
@@ -125,19 +167,32 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               style={styles.input}
               outlineColor={colors.border}
               activeOutlineColor={colors.primary}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="calendar-outline" />}
             />
 
+            {/* Medical condition chips */}
             <Text style={styles.fieldLabel}>{t('recipient.medicalConditions')}</Text>
             <View style={styles.chipRow}>
               {COMMON_CONDITIONS.map((c) => (
-                <Chip
+                <TouchableOpacity
                   key={c}
-                  selected={conditions.includes(c)}
+                  style={[
+                    styles.chip,
+                    conditions.includes(c) && styles.chipSelected,
+                  ]}
                   onPress={() => toggleCondition(c)}
-                  style={styles.chip}
+                  activeOpacity={0.7}
                 >
-                  {c}
-                </Chip>
+                  <Text
+                    style={[
+                      styles.chipText,
+                      conditions.includes(c) && styles.chipTextSelected,
+                    ]}
+                  >
+                    {c}
+                  </Text>
+                </TouchableOpacity>
               ))}
             </View>
 
@@ -151,15 +206,30 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               style={styles.input}
               outlineColor={colors.border}
               activeOutlineColor={colors.primary}
+              outlineStyle={styles.inputOutline}
+              left={<TextInput.Icon icon="note-text-outline" />}
             />
 
-            <GradientButton
-              label={t('onboarding.getStarted')}
+            {/* Submit button */}
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                (isLoading || !name) && styles.submitButtonDisabled,
+              ]}
               onPress={handleComplete}
-              loading={isLoading}
               disabled={isLoading || !name}
-              style={styles.gradientButton}
-            />
+              activeOpacity={0.8}
+            >
+              <View style={styles.submitButtonInner}>
+                {isLoading ? (
+                  <ActivityIndicator color={colors.textOnPrimary} size="small" />
+                ) : (
+                  <Text style={styles.submitButtonText}>
+                    {t('onboarding.getStarted')}
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -177,11 +247,20 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
   },
   iconContainer: {
     alignItems: 'center',
-    marginVertical: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     ...typography.h2,
@@ -193,7 +272,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   form: {
     gap: spacing.md,
@@ -201,10 +280,13 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.surface,
   },
+  inputOutline: {
+    borderRadius: borderRadius.md,
+  },
   fieldLabel: {
     ...typography.subtitle,
     color: colors.textPrimary,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   chipRow: {
     flexDirection: 'row',
@@ -212,10 +294,48 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
-    marginBottom: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  gradientButton: {
-    marginTop: spacing.lg,
+  chipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  chipIcon: {
+    marginRight: spacing.xs,
+  },
+  chipText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+  },
+  chipTextSelected: {
+    color: colors.textOnPrimary,
+    fontWeight: '600',
+  },
+  submitButton: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.xl,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitButtonText: {
+    ...typography.subtitle,
+    color: colors.textOnPrimary,
   },
 });

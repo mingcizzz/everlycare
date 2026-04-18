@@ -29,7 +29,7 @@ export function TimelineFeed({
           <MaterialCommunityIcons
             name="notebook-outline"
             size={80}
-            color={colors.textDisabled}
+            color={colors.textTertiary}
           />
           <Text style={styles.emptyText}>{t('home.noLogsToday')}</Text>
           <Text style={styles.emptySubtext}>{t('home.addFirstLog')}</Text>
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     marginTop: spacing.xs,
   },
 });

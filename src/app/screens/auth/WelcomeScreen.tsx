@@ -5,13 +5,12 @@ import {
   Dimensions,
   FlatList,
   Animated,
+  TouchableOpacity,
 } from 'react-native';
-import { Text, Button } from 'react-native-paper';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { GradientButton } from '../../../components/ui/GradientCard';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -23,35 +22,27 @@ interface WelcomeScreenProps {
 const SLIDES = [
   {
     key: 'welcome',
-    icon: 'heart-pulse',
+    icon: 'heart-pulse' as const,
     titleKey: 'onboarding.welcome',
     descKey: 'onboarding.welcomeDesc',
-    gradientColors: [colors.primary + '30', colors.primary + '10'],
-    iconColor: colors.primary,
   },
   {
     key: 'track',
-    icon: 'notebook-edit-outline',
+    icon: 'notebook-edit-outline' as const,
     titleKey: 'onboarding.track',
     descKey: 'onboarding.trackDesc',
-    gradientColors: [colors.secondary + '30', colors.secondary + '10'],
-    iconColor: colors.secondary,
   },
   {
     key: 'analyze',
-    icon: 'chart-line',
+    icon: 'chart-line' as const,
     titleKey: 'onboarding.analyze',
     descKey: 'onboarding.analyzeDesc',
-    gradientColors: [colors.accent2 + '30', colors.accent2 + '10'],
-    iconColor: colors.accent2,
   },
   {
     key: 'together',
-    icon: 'account-group',
+    icon: 'account-group' as const,
     titleKey: 'onboarding.together',
     descKey: 'onboarding.togetherDesc',
-    gradientColors: [colors.info + '30', colors.info + '10'],
-    iconColor: colors.info,
   },
 ];
 
@@ -76,18 +67,13 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
 
   const renderSlide = ({ item }: { item: (typeof SLIDES)[number] }) => (
     <View style={styles.slide}>
-      <LinearGradient
-        colors={item.gradientColors as [string, string]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.iconCircle}
-      >
+      <View style={styles.iconCircle}>
         <MaterialCommunityIcons
           name={item.icon as any}
-          size={80}
-          color={item.iconColor}
+          size={64}
+          color={colors.primary}
         />
-      </LinearGradient>
+      </View>
       <Text style={styles.slideTitle}>{t(item.titleKey)}</Text>
       <Text style={styles.slideDesc}>{t(item.descKey)}</Text>
     </View>
@@ -106,16 +92,16 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
         bounces={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false }
+          { useNativeDriver: false },
         )}
         onMomentumScrollEnd={(e) => {
           setCurrentIndex(
-            Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH)
+            Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH),
           );
         }}
       />
 
-      {/* Dots */}
+      {/* Dot indicators */}
       <View style={styles.dotsRow}>
         {SLIDES.map((_, i) => {
           const inputRange = [
@@ -128,9 +114,9 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             outputRange: [8, 24, 8],
             extrapolate: 'clamp',
           });
-          const dotOpacity = scrollX.interpolate({
+          const dotColor = scrollX.interpolate({
             inputRange,
-            outputRange: [0.3, 1, 0.3],
+            outputRange: [colors.borderLight, colors.primary, colors.borderLight],
             extrapolate: 'clamp',
           });
           return (
@@ -138,29 +124,43 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
               key={i}
               style={[
                 styles.dot,
-                { width: dotWidth, opacity: dotOpacity },
+                {
+                  width: dotWidth,
+                  backgroundColor: dotColor,
+                },
               ]}
             />
           );
         })}
       </View>
 
+      {/* Bottom navigation */}
       <View style={styles.bottomRow}>
-        {!isLast && (
-          <Button
-            mode="text"
-            onPress={onComplete}
-            textColor={colors.textSecondary}
-          >
-            Skip
-          </Button>
+        {!isLast ? (
+          <TouchableOpacity onPress={onComplete} activeOpacity={0.7}>
+            <Text style={styles.skipText}>Skip</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.skipPlaceholder} />
         )}
-        <View style={{ flex: 1 }} />
-        <GradientButton
-          label={isLast ? t('onboarding.getStarted') : t('common.next')}
-          onPress={handleNext}
+
+        <TouchableOpacity
           style={styles.nextButton}
-        />
+          onPress={handleNext}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.nextButtonText}>
+            {isLast ? t('onboarding.getStarted') : t('common.next')}
+          </Text>
+          {!isLast && (
+            <MaterialCommunityIcons
+              name="arrow-right"
+              size={20}
+              color={colors.textOnPrimary}
+              style={styles.nextIcon}
+            />
+          )}
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -179,15 +179,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   iconCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
   slideTitle: {
-    ...typography.h1,
+    ...typography.h2,
     color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.md,
@@ -197,6 +198,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
+    paddingHorizontal: spacing.md,
   },
   dotsRow: {
     flexDirection: 'row',
@@ -208,15 +210,36 @@ const styles = StyleSheet.create({
   dot: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.primary,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
   },
+  skipText: {
+    ...typography.body,
+    color: colors.textSecondary,
+  },
+  skipPlaceholder: {
+    width: 40,
+  },
   nextButton: {
-    minWidth: 120,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    minWidth: 140,
+  },
+  nextButtonText: {
+    ...typography.subtitle,
+    color: colors.textOnPrimary,
+  },
+  nextIcon: {
+    marginLeft: spacing.xs,
   },
 });

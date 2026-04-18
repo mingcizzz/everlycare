@@ -26,7 +26,7 @@ import type { RootStackScreenProps } from '../../../types/navigation';
 const ROLE_COLORS: Record<string, string> = {
   primary: colors.primary,
   member: colors.secondary,
-  viewer: colors.accent2,
+  viewer: colors.tertiary,
 };
 
 export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>) {
@@ -137,7 +137,7 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
                 <MaterialCommunityIcons
                   name="account-group-outline"
                   size={48}
-                  color={colors.textDisabled}
+                  color={colors.textTertiary}
                 />
                 <Text style={styles.emptyText}>{t('common.noData')}</Text>
               </Card.Content>
@@ -194,7 +194,7 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
               <MaterialCommunityIcons
                 name="timeline-text-outline"
                 size={48}
-                color={colors.textDisabled}
+                color={colors.textTertiary}
               />
               <Text style={styles.emptyText}>{t('common.noData')}</Text>
             </Card.Content>
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   pendingChip: {
-    backgroundColor: colors.accent + '20',
+    backgroundColor: colors.warning + '20',
   },
   feedItem: {
     flexDirection: 'row',
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   feedTime: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
   },
   feedTypeRow: {
     flexDirection: 'row',
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   },
   feedNotes: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     marginTop: 2,
     fontStyle: 'italic',
   },

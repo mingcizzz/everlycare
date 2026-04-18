@@ -1,22 +1,21 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Clipboard, Alert } from 'react-native';
-import { Text, Card, Avatar, Switch, Divider } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Text, Avatar, Switch, Divider } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { useSettingsStore } from '../../../store/settingsStore';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
-import { GradientCard } from '../../../components/ui/GradientCard';
 import type { MainTabScreenProps } from '../../../types/navigation';
 
-const ICON_COLORS: Record<string, string> = {
-  translate: colors.accent2,
-  'bell-outline': colors.primary,
-  pill: '#AB47BC',
-  'account-group-outline': colors.secondary,
-  'account-heart-outline': '#E74C3C',
-};
+const SETTINGS_ITEMS = [
+  { icon: 'bell-outline', color: colors.primary, key: 'reminders' },
+  { icon: 'pill', color: '#8B5CF6', key: 'medication' },
+  { icon: 'account-group-outline', color: colors.secondary, key: 'careTeam' },
+  { icon: 'account-heart-outline', color: '#E74C3C', key: 'careRecipient' },
+] as const;
 
 export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   const { t } = useTranslation();
@@ -25,56 +24,86 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
 
   const isEnglish = language === 'en';
 
-  const renderSettingRow = (
-    iconName: string,
-    label: string,
-    onPress?: () => void,
-    trailing?: React.ReactNode
-  ) => {
-    const iconColor = ICON_COLORS[iconName] || colors.textSecondary;
-    const row = (
-      <View style={styles.settingRow}>
-        <View style={styles.settingLeft}>
-          <View style={[styles.iconCircle, { backgroundColor: iconColor + '20' }]}>
-            <MaterialCommunityIcons
-              name={iconName as any}
-              size={20}
-              color={iconColor}
-            />
-          </View>
-          <Text style={styles.settingLabel}>{label}</Text>
-        </View>
-        {trailing || (
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={24}
-            color={colors.textSecondary}
-          />
-        )}
-      </View>
-    );
-
-    if (onPress) {
-      return (
-        <TouchableOpacity onPress={onPress}>
-          {row}
-        </TouchableOpacity>
-      );
+  const handleCopyId = async () => {
+    if (user?.id) {
+      await Clipboard.setStringAsync(user.id);
+      Alert.alert(t('common.success'), 'User ID copied to clipboard');
     }
-    return row;
+  };
+
+  const handleNavigate = (key: string) => {
+    switch (key) {
+      case 'reminders':
+        navigation.navigate('Reminders');
+        break;
+      case 'medication':
+        navigation.navigate('Medications');
+        break;
+      case 'careTeam':
+        navigation.navigate('CareTeam');
+        break;
+      case 'careRecipient':
+        navigation.navigate('CareRecipientProfile', {});
+        break;
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('auth.deleteAccount'),
+      t('auth.deleteAccountConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('auth.deleteAccount'),
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              t('auth.deleteAccountFinal'),
+              t('auth.deleteAccountFinalDesc'),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('common.confirm'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteAccount();
+                    } catch (err: any) {
+                      Alert.alert(t('common.error'), err.message);
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
+  const settingLabels: Record<string, string> = {
+    reminders: t('reminders.title'),
+    medication: t('medication.title'),
+    careTeam: t('careTeam.title'),
+    careRecipient: t('recipient.title'),
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Profile Card */}
-        <GradientCard style={styles.profileCard}>
-          <View style={styles.profileContent}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Header Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileRow}>
             <Avatar.Text
-              size={64}
-              label={user?.displayName?.charAt(0) || '?'}
-              style={{ backgroundColor: '#FFFFFF' }}
-              color={colors.primary}
+              size={56}
+              label={user?.displayName?.charAt(0)?.toUpperCase() || '?'}
+              style={styles.avatar}
+              labelStyle={styles.avatarLabel}
+              color={colors.surface}
             />
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>
@@ -83,116 +112,103 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
               <Text style={styles.profileRole}>{t('careTeam.primary')}</Text>
               {user?.id && (
                 <TouchableOpacity
-                  onPress={() => {
-                    Clipboard.setString(user.id);
-                    Alert.alert('Copied', 'User ID copied to clipboard');
-                  }}
+                  onPress={handleCopyId}
+                  activeOpacity={0.6}
+                  style={styles.userIdRow}
                 >
                   <Text style={styles.userId}>
-                    ID: {user.id.slice(0, 8)}... (tap to copy)
+                    ID: {user.id.slice(0, 8)}...
                   </Text>
+                  <MaterialCommunityIcons
+                    name="content-copy"
+                    size={12}
+                    color={colors.textTertiary}
+                  />
                 </TouchableOpacity>
               )}
             </View>
           </View>
-        </GradientCard>
+        </View>
 
-        {/* Settings */}
-        <Card style={styles.settingsCard}>
-          <Card.Content>
-            <Text style={styles.sectionTitle}>{t('common.settings')}</Text>
+        {/* Section Label */}
+        <Text style={styles.sectionLabel}>{t('common.settings')}</Text>
 
-            {/* Language Toggle */}
-            {renderSettingRow('translate', 'English', undefined, (
-              <Switch
-                value={isEnglish}
-                onValueChange={(v) => setLanguage(v ? 'en' : 'zh-CN')}
-                color={colors.primary}
-              />
-            ))}
+        {/* Settings Card */}
+        <View style={styles.settingsCard}>
+          {/* Language Toggle */}
+          <View style={styles.settingRow}>
+            <View style={styles.settingLeft}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  { backgroundColor: colors.tertiary + '18' },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="translate"
+                  size={18}
+                  color={colors.tertiary}
+                />
+              </View>
+              <Text style={styles.settingLabel}>English</Text>
+            </View>
+            <Switch
+              value={isEnglish}
+              onValueChange={(v) => setLanguage(v ? 'en' : 'zh-CN')}
+              color={colors.primary}
+            />
+          </View>
 
-            <Divider style={styles.divider} />
+          {SETTINGS_ITEMS.map((item, index) => (
+            <React.Fragment key={item.key}>
+              <Divider style={styles.divider} />
+              <TouchableOpacity
+                style={styles.settingRow}
+                onPress={() => handleNavigate(item.key)}
+                activeOpacity={0.6}
+              >
+                <View style={styles.settingLeft}>
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      { backgroundColor: item.color + '18' },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name={item.icon as any}
+                      size={18}
+                      color={item.color}
+                    />
+                  </View>
+                  <Text style={styles.settingLabel}>
+                    {settingLabels[item.key]}
+                  </Text>
+                </View>
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={22}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
+        </View>
 
-            {/* Reminders */}
-            {renderSettingRow('bell-outline', t('reminders.title'), () =>
-              navigation.navigate('Reminders')
-            )}
-
-            <Divider style={styles.divider} />
-
-            {/* Medications */}
-            {renderSettingRow('pill', t('medication.title'), () =>
-              navigation.navigate('Medications')
-            )}
-
-            <Divider style={styles.divider} />
-
-            {/* Care Team */}
-            {renderSettingRow('account-group-outline', t('careTeam.title'), () =>
-              navigation.navigate('CareTeam')
-            )}
-
-            <Divider style={styles.divider} />
-
-            {/* Care Recipient */}
-            {renderSettingRow('account-heart-outline', t('recipient.title'), () =>
-              navigation.navigate('CareRecipientProfile', {})
-            )}
-          </Card.Content>
-        </Card>
-
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-          <MaterialCommunityIcons
-            name="logout"
-            size={20}
-            color={colors.error}
-          />
+        {/* Log Out Card */}
+        <TouchableOpacity
+          style={styles.logoutCard}
+          onPress={signOut}
+          activeOpacity={0.7}
+        >
           <Text style={styles.logoutText}>{t('auth.logout')}</Text>
         </TouchableOpacity>
 
         {/* Delete Account */}
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => {
-            Alert.alert(
-              t('auth.deleteAccount'),
-              t('auth.deleteAccountConfirm'),
-              [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                  text: t('auth.deleteAccount'),
-                  style: 'destructive',
-                  onPress: () => {
-                    Alert.alert(
-                      t('auth.deleteAccountFinal'),
-                      t('auth.deleteAccountFinalDesc'),
-                      [
-                        { text: t('common.cancel'), style: 'cancel' },
-                        {
-                          text: t('common.confirm'),
-                          style: 'destructive',
-                          onPress: async () => {
-                            try {
-                              await deleteAccount();
-                            } catch (err: any) {
-                              Alert.alert(t('common.error'), err.message);
-                            }
-                          },
-                        },
-                      ]
-                    );
-                  },
-                },
-              ]
-            );
-          }}
+          onPress={handleDeleteAccount}
+          activeOpacity={0.5}
         >
-          <MaterialCommunityIcons
-            name="account-remove"
-            size={20}
-            color={colors.textDisabled}
-          />
           <Text style={styles.deleteText}>{t('auth.deleteAccount')}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -206,52 +222,79 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: spacing.md,
-    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
   },
+
+  // Profile Card
   profileCard: {
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
+    ...shadows.md,
+    marginBottom: spacing.lg,
   },
-  profileContent: {
+  profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+  },
+  avatar: {
+    backgroundColor: colors.primary,
+  },
+  avatarLabel: {
+    fontSize: 22,
+    fontWeight: '700',
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     ...typography.h3,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
   },
   profileRole: {
-    ...typography.bodySmall,
-    color: '#FFFFFF',
-    opacity: 0.85,
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  userIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
   userId: {
     ...typography.caption,
-    color: '#FFFFFF',
-    opacity: 0.7,
-    marginTop: spacing.xs,
+    color: colors.textTertiary,
+    fontFamily: undefined,
   },
+
+  // Section Label
+  sectionLabel: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+  },
+
+  // Settings Card
   settingsCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     ...shadows.sm,
-  },
-  sectionTitle: {
-    ...typography.subtitle,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -270,30 +313,31 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   divider: {
-    marginVertical: spacing.xs,
+    backgroundColor: colors.borderLight,
+    marginLeft: 36 + spacing.md,
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
-    backgroundColor: colors.error + '26',
+
+  // Log Out
+  logoutCard: {
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    ...shadows.sm,
+    marginBottom: spacing.md,
   },
   logoutText: {
     ...typography.subtitle,
     color: colors.error,
   },
+
+  // Delete Account
   deleteButton: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
+    paddingVertical: spacing.md,
   },
   deleteText: {
-    ...typography.bodySmall,
-    color: colors.textDisabled,
+    ...typography.caption,
+    color: colors.textTertiary,
   },
 });

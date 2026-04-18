@@ -17,7 +17,8 @@
     "noData": "暂无数据",
     "today": "今天",
     "yesterday": "昨天",
-    "settings": "设置"
+    "settings": "设置",
+    "seeAll": "查看全部"
   },
   "auth": {
     "login": "登录",

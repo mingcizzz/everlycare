@@ -27,6 +27,7 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
       onLongPress={onLongPress}
       style={styles.container}
     >
+      {/* Time column */}
       <View style={styles.timeColumn}>
         <Text style={styles.timeText}>{formatTime(log.occurredAt)}</Text>
         {showDate && (
@@ -36,14 +37,13 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
         )}
       </View>
 
-      <View style={[styles.dot, { backgroundColor: config.color }]} />
-
-      <View style={[styles.content, { borderLeftColor: config.color }]}>
+      {/* Card */}
+      <View style={[styles.card, { borderLeftColor: config.color }]}>
         <View style={styles.headerRow}>
-          <View style={[styles.iconBg, { backgroundColor: config.color + '20' }]}>
+          <View style={[styles.iconBg, { backgroundColor: config.color + '18' }]}>
             <MaterialCommunityIcons
               name={config.icon as any}
-              size={18}
+              size={14}
               color={config.color}
             />
           </View>
@@ -101,36 +101,32 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   timeColumn: {
-    width: 56,
+    width: 52,
     alignItems: 'flex-end',
-    paddingTop: spacing.xs,
+    paddingTop: spacing.sm,
+    marginRight: spacing.sm,
   },
   timeText: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
     fontWeight: '500',
   },
   dateText: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     fontSize: 10,
+    marginTop: 1,
   },
-  dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginTop: 6,
-    marginHorizontal: spacing.sm,
-  },
-  content: {
+  card: {
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
-    borderLeftWidth: 4,
+    paddingLeft: spacing.md,
+    borderLeftWidth: 3,
     ...shadows.sm,
   },
   headerRow: {
@@ -141,7 +137,7 @@ const styles = StyleSheet.create({
   iconBg: {
     width: 28,
     height: 28,
-    borderRadius: borderRadius.full,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -158,7 +154,7 @@ const styles = StyleSheet.create({
   },
   notes: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     marginTop: 2,
     marginLeft: 36,
     fontStyle: 'italic',

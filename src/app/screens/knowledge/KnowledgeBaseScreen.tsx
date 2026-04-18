@@ -1,10 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Text, Card } from 'react-native-paper';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { useSettingsStore } from '../../../store/settingsStore';
@@ -27,71 +32,78 @@ const CATEGORY_LABELS: Record<string, string> = {
   daily_care: 'knowledge.dailyCare',
 };
 
-export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledge'>) {
+export function KnowledgeBaseScreen({
+  navigation,
+}: MainTabScreenProps<'Knowledge'>) {
   const { t } = useTranslation();
   const { language } = useSettingsStore();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const loadArticles = async () => {
+  const loadArticles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await knowledgeService.getArticles(selectedCategory || undefined);
+      const data = await knowledgeService.getArticles(
+        selectedCategory || undefined
+      );
       setArticles(data);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedCategory]);
 
   useEffect(() => {
     loadArticles();
-  }, [selectedCategory]);
+  }, [loadArticles]);
 
-  // Refresh when returning from AddArticle
   useFocusEffect(
     useCallback(() => {
       loadArticles();
-    }, [selectedCategory])
+    }, [loadArticles])
   );
 
   const categories = Object.keys(CATEGORY_META);
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>{t('knowledge.title')}</Text>
+        <Text style={styles.headerTitle}>{t('knowledge.title')}</Text>
       </View>
 
+      {/* Category Filter */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.categoryBar}
       >
+        {/* "All" chip */}
         <TouchableOpacity
           style={[
-            styles.categoryChip,
-            !selectedCategory && {
-              backgroundColor: colors.primary,
-              borderColor: colors.primary,
-            },
+            styles.chip,
+            !selectedCategory
+              ? styles.chipActive
+              : styles.chipInactive,
           ]}
           onPress={() => setSelectedCategory(null)}
+          activeOpacity={0.7}
         >
           <MaterialCommunityIcons
             name="view-grid"
-            size={16}
-            color={!selectedCategory ? '#FFFFFF' : colors.textPrimary}
+            size={14}
+            color={!selectedCategory ? '#FFFFFF' : colors.primary}
           />
           <Text
             style={[
-              styles.categoryChipText,
-              !selectedCategory && styles.categoryChipTextActive,
+              styles.chipText,
+              !selectedCategory && styles.chipTextActive,
             ]}
           >
             {t('knowledge.all')}
           </Text>
         </TouchableOpacity>
+
         {categories.map((cat) => {
           const meta = CATEGORY_META[cat];
           const isActive = selectedCategory === cat;
@@ -99,23 +111,23 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
             <TouchableOpacity
               key={cat}
               style={[
-                styles.categoryChip,
-                isActive && {
-                  backgroundColor: meta.color,
-                  borderColor: meta.color,
-                },
+                styles.chip,
+                isActive
+                  ? [styles.chipActive, { backgroundColor: meta.color }]
+                  : styles.chipInactive,
               ]}
               onPress={() => setSelectedCategory(cat)}
+              activeOpacity={0.7}
             >
               <MaterialCommunityIcons
                 name={meta.icon as any}
-                size={16}
+                size={14}
                 color={isActive ? '#FFFFFF' : meta.color}
               />
               <Text
                 style={[
-                  styles.categoryChipText,
-                  isActive && styles.categoryChipTextActive,
+                  styles.chipText,
+                  isActive && styles.chipTextActive,
                 ]}
               >
                 {t(CATEGORY_LABELS[cat])}
@@ -125,23 +137,23 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
         })}
       </ScrollView>
 
+      {/* Articles List */}
       <ScrollView
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={loadArticles} />
         }
       >
         {articles.length === 0 && !isLoading ? (
-          <Card style={styles.emptyCard}>
-            <Card.Content style={styles.emptyContent}>
-              <MaterialCommunityIcons
-                name="book-open-page-variant"
-                size={80}
-                color={colors.textDisabled}
-              />
-              <Text style={styles.emptyText}>{t('common.noData')}</Text>
-            </Card.Content>
-          </Card>
+          <View style={styles.emptyContainer}>
+            <MaterialCommunityIcons
+              name="book-open-page-variant"
+              size={64}
+              color={colors.textTertiary}
+            />
+            <Text style={styles.emptyTitle}>{t('common.noData')}</Text>
+          </View>
         ) : (
           articles.map((article) => {
             const title =
@@ -158,163 +170,220 @@ export function KnowledgeBaseScreen({ navigation }: MainTabScreenProps<'Knowledg
               .replace(/\n/g, ' ')
               .replace(/\s{2,}/g, ' ')
               .trim();
-            const meta = CATEGORY_META[article.category] || CATEGORY_META.daily_care;
+            const meta =
+              CATEGORY_META[article.category] || CATEGORY_META.daily_care;
+            const catLabel =
+              CATEGORY_LABELS[article.category] || 'knowledge.dailyCare';
 
             return (
               <TouchableOpacity
                 key={article.id}
                 activeOpacity={0.7}
                 onPress={() =>
-                  navigation.navigate('ArticleDetail', { articleId: article.id })
+                  navigation.navigate('ArticleDetail', {
+                    articleId: article.id,
+                  })
                 }
               >
-                <Card
+                <View
                   style={[
                     styles.articleCard,
-                    { borderLeftWidth: 4, borderLeftColor: meta.color },
+                    { borderLeftColor: meta.color },
                   ]}
                 >
-                  <Card.Content style={styles.articleContent}>
+                  <View style={styles.articleRow}>
+                    {/* Icon */}
                     <View
                       style={[
-                        styles.articleIcon,
-                        { backgroundColor: meta.color + '15' },
+                        styles.articleIconCircle,
+                        { backgroundColor: meta.color + '12' },
                       ]}
                     >
                       <MaterialCommunityIcons
                         name={meta.icon as any}
-                        size={24}
+                        size={22}
                         color={meta.color}
                       />
                     </View>
-                    <View style={styles.articleText}>
+
+                    {/* Text Content */}
+                    <View style={styles.articleTextWrap}>
                       <Text style={styles.articleTitle} numberOfLines={2}>
                         {title}
                       </Text>
                       <Text style={styles.articlePreview} numberOfLines={2}>
                         {preview}
                       </Text>
+                      {/* Category Tag */}
+                      <View
+                        style={[
+                          styles.categoryTag,
+                          { backgroundColor: meta.color + '12' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.categoryTagText,
+                            { color: meta.color },
+                          ]}
+                        >
+                          {t(catLabel)}
+                        </Text>
+                      </View>
                     </View>
-                  </Card.Content>
-                </Card>
+                  </View>
+                </View>
               </TouchableOpacity>
             );
           })
         )}
       </ScrollView>
 
-      {/* Add Tip FAB */}
+      {/* FAB */}
       <TouchableOpacity
-        style={styles.fabContainer}
+        style={styles.fab}
         onPress={() => navigation.navigate('AddArticle')}
         activeOpacity={0.85}
       >
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd] as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.fab}
-        >
-          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
-        </LinearGradient>
+        <View style={styles.fabInner}>
+          <MaterialCommunityIcons name="plus" size={26} color="#FFFFFF" />
+        </View>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Styles                                                             */
+/* ------------------------------------------------------------------ */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+
+  // Header
   header: {
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  title: {
+  headerTitle: {
     ...typography.h2,
     color: colors.textPrimary,
   },
+
+  // Category Bar
   categoryBar: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
     gap: spacing.sm,
   },
-  categoryChip: {
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 6,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
+  },
+  chipActive: {
+    backgroundColor: colors.primary,
+  },
+  chipInactive: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  categoryChipText: {
+  chipText: {
     ...typography.caption,
+    fontWeight: '600',
     color: colors.textPrimary,
-    fontWeight: '500',
   },
-  categoryChipTextActive: {
+  chipTextActive: {
     color: '#FFFFFF',
   },
+
+  // Content
   content: {
-    padding: spacing.md,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
     paddingBottom: 100,
+    gap: spacing.sm,
   },
+
+  // Article Card
   articleCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    borderLeftWidth: 3,
     ...shadows.sm,
   },
-  articleContent: {
+  articleRow: {
     flexDirection: 'row',
     gap: spacing.md,
   },
-  articleIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.md,
+  articleIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 2,
   },
-  articleText: {
+  articleTextWrap: {
     flex: 1,
   },
   articleTitle: {
     ...typography.subtitle,
     color: colors.textPrimary,
+    lineHeight: 22,
   },
   articlePreview: {
     ...typography.caption,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+    lineHeight: 18,
   },
-  emptyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+  categoryTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.sm,
   },
-  emptyContent: {
+  categoryTagText: {
+    fontSize: 10,
+    fontWeight: '600',
+    lineHeight: 14,
+  },
+
+  // Empty State
+  emptyContainer: {
     alignItems: 'center',
-    padding: spacing.xl,
+    paddingTop: spacing.xxl * 2,
+    paddingHorizontal: spacing.xl,
   },
-  emptyText: {
-    ...typography.body,
+  emptyTitle: {
+    ...typography.subtitle,
     color: colors.textSecondary,
+    textAlign: 'center',
     marginTop: spacing.md,
   },
-  fabContainer: {
+
+  // FAB
+  fab: {
     position: 'absolute',
     right: spacing.md,
     bottom: spacing.xl,
     ...shadows.lg,
   },
-  fab: {
+  fabInner: {
     width: 56,
     height: 56,
     borderRadius: 28,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

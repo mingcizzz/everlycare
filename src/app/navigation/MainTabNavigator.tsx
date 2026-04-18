@@ -12,7 +12,10 @@ import { SettingsScreen } from '../screens/profile/SettingsScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const TAB_ICONS: Record<keyof MainTabParamList, { focused: string; unfocused: string }> = {
+const TAB_ICONS: Record<
+  keyof MainTabParamList,
+  { focused: string; unfocused: string }
+> = {
   Home: { focused: 'home', unfocused: 'home-outline' },
   Log: { focused: 'plus-circle', unfocused: 'plus-circle-outline' },
   Insights: { focused: 'chart-bar', unfocused: 'chart-line' },
@@ -27,25 +30,33 @@ export function MainTabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ color, size, focused }) => (
+        tabBarIcon: ({ color, focused }) => (
           <MaterialCommunityIcons
-            name={(focused ? TAB_ICONS[route.name].focused : TAB_ICONS[route.name].unfocused) as any}
-            size={size}
+            name={
+              (focused
+                ? TAB_ICONS[route.name].focused
+                : TAB_ICONS[route.name].unfocused) as any
+            }
+            size={24}
             color={color}
           />
         ),
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textDisabled,
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 0,
-          height: 64,
-          paddingBottom: 8,
-          ...shadows.md,
+          height: 60,
+          paddingBottom: 6,
+          ...shadows.sm,
         },
         tabBarLabelStyle: {
-          fontSize: 13,
-          fontWeight: '700',
+          fontSize: 11,
+          fontWeight: '400',
+        },
+        tabBarActiveLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
         },
         tabBarItemStyle: {
           paddingTop: 4,

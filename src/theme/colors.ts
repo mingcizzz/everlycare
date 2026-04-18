@@ -1,67 +1,82 @@
 export const colors = {
-  // Primary — calm teal (matches logo)
-  primary: '#4A9BAD',
-  primaryLight: '#6DB8C8',
-  primaryDark: '#3A7A8C',
+  // Primary — refined teal (matches logo, professional tone)
+  primary: '#2E8B9A',
+  primaryLight: '#E8F4F7',
+  primaryDark: '#1D6B78',
+  primaryMuted: '#2E8B9A20',
 
-  // Secondary — soft sage green
-  secondary: '#7BC67E',
-  secondaryLight: '#A3D9A5',
-  secondaryDark: '#5AA05D',
+  // Secondary — warm coral for accents
+  secondary: '#FF7B6F',
+  secondaryLight: '#FFF0EE',
 
-  // Accents
-  accent: '#F5A623',
-  accentLight: '#FFCA6A',
-  accentDark: '#D48A00',
-  accent2: '#5C6BC0', // soft indigo for data/insights
+  // Tertiary — soft purple for data/insights
+  tertiary: '#7B68EE',
+  tertiaryLight: '#F0EDFF',
 
   // Semantic
-  error: '#EF5350',
-  errorLight: '#FFCDD2',
-  warning: '#FFA726',
-  success: '#66BB6A',
-  info: '#42A5F5',
+  error: '#E5534B',
+  errorLight: '#FEF2F1',
+  warning: '#F5A524',
+  warningLight: '#FFF8EC',
+  success: '#4CAF7D',
+  successLight: '#EEFBF3',
+  info: '#3B82F6',
 
-  // Backgrounds — clean white with subtle warmth
-  background: '#F5F8FA',
+  // Backgrounds
+  background: '#F7F8FA',
   surface: '#FFFFFF',
-  surfaceVariant: '#EDF2F5',
+  surfaceElevated: '#FFFFFF',
+  surfaceSecondary: '#F0F2F5',
 
-  // Text — dark navy for readability
-  textPrimary: '#1E3A4F',
-  textSecondary: '#607D8B',
-  textDisabled: '#B0BEC5',
+  // Text
+  textPrimary: '#1A1D26',
+  textSecondary: '#6B7280',
+  textTertiary: '#9CA3AF',
   textOnPrimary: '#FFFFFF',
   textOnGradient: '#FFFFFF',
 
-  // Borders — cool gray
-  border: '#D6E0E5',
-  divider: '#E8EEF1',
+  // Borders & dividers
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+  divider: '#F3F4F6',
 
-  // Gradients — teal matching logo
-  gradientStart: '#5A9FB2',
-  gradientEnd: '#3A7A8C',
+  // Gradient
+  gradientStart: '#2E8B9A',
+  gradientEnd: '#1D6B78',
+  gradientWarm: '#FF7B6F',
 
-  // Log type colors — bold & vibrant
-  logBowel: '#8D6E63',
-  logUrination: '#42A5F5',
-  logMeal: '#FFA726',
-  logMedication: '#AB47BC',
-  logMood: '#FFC107',
-  logHygiene: '#26C6DA',
-  logActivity: '#EF5350',
-  logNote: '#78909C',
+  // Log type — refined, cohesive palette
+  logBowel: '#8B7355',
+  logUrination: '#3B82F6',
+  logMeal: '#F59E0B',
+  logMedication: '#8B5CF6',
+  logMood: '#EC4899',
+  logHygiene: '#06B6D4',
+  logActivity: '#EF4444',
+  logNote: '#6B7280',
 } as const;
 
 export const logGradients: Record<string, [string, string]> = {
-  bowel: ['#8D6E63', '#A1887F'],
-  urination: ['#42A5F5', '#64B5F6'],
-  meal: ['#FFA726', '#FFB74D'],
-  medication: ['#AB47BC', '#CE93D8'],
-  mood: ['#FFC107', '#FFD54F'],
-  hygiene: ['#26C6DA', '#4DD0E1'],
-  activity: ['#EF5350', '#E57373'],
-  note: ['#78909C', '#90A4AE'],
+  bowel: ['#8B7355', '#A0896A'],
+  urination: ['#3B82F6', '#60A5FA'],
+  meal: ['#F59E0B', '#FBBF24'],
+  medication: ['#8B5CF6', '#A78BFA'],
+  mood: ['#EC4899', '#F472B6'],
+  hygiene: ['#06B6D4', '#22D3EE'],
+  activity: ['#EF4444', '#F87171'],
+  note: ['#6B7280', '#9CA3AF'],
+};
+
+// Semantic card backgrounds (light tint of log color)
+export const logBackgrounds: Record<string, string> = {
+  bowel: '#F5F0EB',
+  urination: '#EFF6FF',
+  meal: '#FFFBEB',
+  medication: '#F5F3FF',
+  mood: '#FDF2F8',
+  hygiene: '#ECFEFF',
+  activity: '#FEF2F2',
+  note: '#F9FAFB',
 };
 
 export type ColorToken = keyof typeof colors;

@@ -10,9 +10,8 @@ import {
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows, logGradients } from '../../../theme';
+import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../../theme';
 import { LOG_TYPE_CONFIG, type LogType } from '../../../types/careLog';
 import { useRecipientStore } from '../../../store/recipientStore';
 import type { MainTabScreenProps } from '../../../types/navigation';
@@ -23,32 +22,37 @@ const CARD_GAP = spacing.sm;
 const CARD_PADDING = spacing.md;
 const CARD_WIDTH = (SCREEN_WIDTH - CARD_PADDING * 2 - CARD_GAP) / 2;
 
+const LOG_TYPES: LogType[] = [
+  'bowel',
+  'urination',
+  'meal',
+  'medication',
+  'mood',
+  'hygiene',
+  'activity',
+  'note',
+];
+
 export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
   const { t } = useTranslation();
   const { activeRecipient } = useRecipientStore();
   const [selectedLogType, setSelectedLogType] = useState<LogType | null>(null);
 
-  const logTypes: LogType[] = [
-    'bowel',
-    'urination',
-    'meal',
-    'medication',
-    'mood',
-    'hygiene',
-    'activity',
-    'note',
-  ];
-
   if (!activeRecipient) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
-          <MaterialCommunityIcons
-            name="account-plus"
-            size={80}
-            color={colors.textDisabled}
-          />
-          <Text style={styles.emptyText}>{t('recipient.addNew')}</Text>
+          <View style={styles.emptyIconCircle}>
+            <MaterialCommunityIcons
+              name="account-plus-outline"
+              size={48}
+              color={colors.textTertiary}
+            />
+          </View>
+          <Text style={styles.emptyTitle}>{t('recipient.addNew')}</Text>
+          <Text style={styles.emptySubtitle}>
+            {t('recipient.addNewDescription', { defaultValue: 'Add a care recipient to start logging' })}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -63,32 +67,33 @@ export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.grid}>
-        {logTypes.map((type) => {
+      <ScrollView
+        contentContainerStyle={styles.grid}
+        showsVerticalScrollIndicator={false}
+      >
+        {LOG_TYPES.map((type) => {
           const config = LOG_TYPE_CONFIG[type];
-          const gradient = logGradients[type] || [config.color, config.color];
+          const bgColor = logBackgrounds[type] || colors.surface;
+
           return (
             <TouchableOpacity
               key={type}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={() => setSelectedLogType(type)}
               style={styles.cardWrapper}
             >
-              <LinearGradient
-                colors={gradient as [string, string]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.logCard}
-              >
-                <View style={styles.iconCircle}>
+              <View style={styles.logCard}>
+                <View style={[styles.iconCircle, { backgroundColor: bgColor }]}>
                   <MaterialCommunityIcons
                     name={config.icon as any}
-                    size={32}
-                    color="#FFFFFF"
+                    size={28}
+                    color={config.color}
                   />
                 </View>
-                <Text style={styles.logLabel}>{t(config.labelKey)}</Text>
-              </LinearGradient>
+                <Text style={styles.logLabel} numberOfLines={1}>
+                  {t(config.labelKey)}
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -115,8 +120,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    padding: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
   title: {
     ...typography.h2,
@@ -138,36 +144,50 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   logCard: {
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.md,
+    height: 130,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 120,
-    ...shadows.md,
+    ...shadows.sm,
   },
   iconCircle: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
   logLabel: {
     ...typography.subtitle,
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
   },
-  emptyText: {
-    ...typography.body,
+  emptyIconCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.surfaceSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  emptyTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    ...typography.bodySmall,
     color: colors.textSecondary,
+    textAlign: 'center',
   },
 });

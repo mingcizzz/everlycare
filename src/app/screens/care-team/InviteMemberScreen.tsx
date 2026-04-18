@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     alignItems: 'flex-start',
     padding: spacing.md,
-    backgroundColor: colors.surfaceVariant,
+    backgroundColor: colors.surfaceSecondary,
     borderRadius: borderRadius.md,
   },
   roleDescriptionText: {

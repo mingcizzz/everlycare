@@ -90,7 +90,7 @@ export function MedicationsScreen({ navigation }: RootStackScreenProps<'Medicati
               <MaterialCommunityIcons
                 name="pill"
                 size={80}
-                color={colors.textDisabled}
+                color={colors.textTertiary}
               />
               <Text style={styles.emptyText}>{t('common.noData')}</Text>
             </Card.Content>
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   medSchedule: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     marginTop: 2,
   },
   emptyCard: {

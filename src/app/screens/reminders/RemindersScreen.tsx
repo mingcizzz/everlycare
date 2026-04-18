@@ -22,7 +22,7 @@ const TYPE_META: Record<Reminder['reminderType'], { icon: string; color: string 
   toilet: { icon: 'toilet', color: colors.logBowel },
   medication: { icon: 'pill', color: colors.logMedication },
   fluid: { icon: 'cup-water', color: colors.logUrination },
-  custom: { icon: 'bell', color: colors.accent },
+  custom: { icon: 'bell', color: colors.warning },
 };
 
 export function RemindersScreen({ navigation }: RootStackScreenProps<'Reminders'>) {
@@ -101,7 +101,7 @@ export function RemindersScreen({ navigation }: RootStackScreenProps<'Reminders'
               <MaterialCommunityIcons
                 name="bell-off-outline"
                 size={80}
-                color={colors.textDisabled}
+                color={colors.textTertiary}
               />
               <Text style={styles.emptyText}>{t('common.noData')}</Text>
               <Text style={styles.emptySubtext}>{t('reminders.addReminder')}</Text>
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     marginTop: spacing.xs,
   },
   fab: {

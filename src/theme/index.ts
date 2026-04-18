@@ -1,5 +1,5 @@
 import { MD3LightTheme } from 'react-native-paper';
-import { colors, logGradients } from './colors';
+import { colors, logGradients, logBackgrounds } from './colors';
 import { spacing, borderRadius, shadows } from './spacing';
 import { typography } from './typography';
 
@@ -11,11 +11,11 @@ export const theme = {
     primaryContainer: colors.primaryLight,
     secondary: colors.secondary,
     secondaryContainer: colors.secondaryLight,
-    tertiary: colors.accent2,
+    tertiary: colors.tertiary,
     error: colors.error,
     background: colors.background,
     surface: colors.surface,
-    surfaceVariant: colors.surfaceVariant,
+    surfaceVariant: colors.surfaceSecondary,
     onPrimary: colors.textOnPrimary,
     onSurface: colors.textPrimary,
     onSurfaceVariant: colors.textSecondary,
@@ -23,4 +23,4 @@ export const theme = {
   },
 };
 
-export { colors, logGradients, spacing, borderRadius, shadows, typography };
+export { colors, logGradients, logBackgrounds, spacing, borderRadius, shadows, typography };

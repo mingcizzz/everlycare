@@ -6,15 +6,16 @@ import {
   Platform,
   ScrollView,
   Alert,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Button } from 'react-native-paper';
+import { Text, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../../../store/authStore';
 import { authService } from '../../../services/auth.service';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
-import { GradientButton } from '../../../components/ui/GradientCard';
 import type { AuthScreenProps } from '../../../types/navigation';
 
 export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
@@ -69,6 +70,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {/* Logo */}
           <View style={styles.logoContainer}>
@@ -76,16 +78,14 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
               <MaterialCommunityIcons
                 name="heart-pulse"
                 size={48}
-                color={colors.primary}
+                color={colors.textOnPrimary}
               />
             </View>
           </View>
 
-          <View style={styles.header}>
-            <Text style={styles.appName}>{t('common.appName')}</Text>
-            <Text style={styles.title}>{t('auth.loginTitle')}</Text>
-            <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
-          </View>
+          {/* Header */}
+          <Text style={styles.appName}>{t('common.appName')}</Text>
+          <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
 
           {showForgotPassword ? (
             <View style={styles.form}>
@@ -103,24 +103,45 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
                 style={styles.input}
                 outlineColor={colors.border}
                 activeOutlineColor={colors.primary}
+                outlineStyle={styles.inputOutline}
+                left={<TextInput.Icon icon="email-outline" />}
               />
 
-              <GradientButton
-                label={t('auth.sendResetLink')}
+              <TouchableOpacity
+                style={[
+                  styles.primaryButton,
+                  (resetLoading || !resetEmail) && styles.primaryButtonDisabled,
+                ]}
                 onPress={handleResetPassword}
-                loading={resetLoading}
                 disabled={resetLoading || !resetEmail}
-                icon="email-outline"
-              />
-
-              <Button
-                mode="text"
-                onPress={() => setShowForgotPassword(false)}
-                textColor={colors.textSecondary}
-                style={styles.linkButton}
+                activeOpacity={0.8}
               >
-                {t('common.back')}
-              </Button>
+                <View style={styles.primaryButtonInner}>
+                  {resetLoading ? (
+                    <ActivityIndicator color={colors.textOnPrimary} size="small" />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons
+                        name="email-outline"
+                        size={20}
+                        color={colors.textOnPrimary}
+                        style={styles.buttonIcon}
+                      />
+                      <Text style={styles.primaryButtonText}>
+                        {t('auth.sendResetLink')}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setShowForgotPassword(false)}
+                style={styles.textButton}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.textButtonLabel}>{t('common.back')}</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.form}>
@@ -135,6 +156,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
                 style={styles.input}
                 outlineColor={colors.border}
                 activeOutlineColor={colors.primary}
+                outlineStyle={styles.inputOutline}
                 left={<TextInput.Icon icon="email-outline" />}
               />
 
@@ -147,6 +169,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
                 style={styles.input}
                 outlineColor={colors.border}
                 activeOutlineColor={colors.primary}
+                outlineStyle={styles.inputOutline}
                 left={<TextInput.Icon icon="lock-outline" />}
               />
 
@@ -154,42 +177,58 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
                 <Text style={styles.error}>{error}</Text>
               ) : null}
 
-              <GradientButton
-                label={t('auth.login')}
+              <TouchableOpacity
+                style={[
+                  styles.primaryButton,
+                  (isLoading || !email || !password) && styles.primaryButtonDisabled,
+                ]}
                 onPress={handleLogin}
-                loading={isLoading}
                 disabled={isLoading || !email || !password}
-                icon="login"
-              />
+                activeOpacity={0.8}
+              >
+                <View style={styles.primaryButtonInner}>
+                  {isLoading ? (
+                    <ActivityIndicator color={colors.textOnPrimary} size="small" />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>
+                      {t('auth.login')}
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
 
-              <Button
-                mode="text"
+              <TouchableOpacity
                 onPress={() => {
                   setShowForgotPassword(true);
                   setResetEmail(email);
                 }}
-                textColor={colors.textSecondary}
-                style={styles.linkButton}
+                style={styles.textButton}
+                activeOpacity={0.7}
               >
-                {t('auth.forgotPassword')}
-              </Button>
+                <Text style={styles.textButtonLabel}>
+                  {t('auth.forgotPassword')}
+                </Text>
+              </TouchableOpacity>
 
+              {/* Divider */}
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
                 <Text style={styles.dividerText}>{t('auth.orContinueWith')}</Text>
                 <View style={styles.dividerLine} />
               </View>
 
-              <Button
-                mode="outlined"
+              {/* Sign Up */}
+              <TouchableOpacity
+                style={styles.outlinedButton}
                 onPress={() => navigation.navigate('Register')}
-                textColor={colors.primary}
-                style={styles.registerButton}
-                contentStyle={styles.registerButtonContent}
-                icon="account-plus"
+                activeOpacity={0.8}
               >
-                {t('auth.register')}
-              </Button>
+                <View style={styles.primaryButtonInner}>
+                  <Text style={styles.outlinedButtonText}>
+                    {t('auth.register')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
@@ -209,37 +248,32 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   logoCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.primary + '15',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
   },
   appName: {
     ...typography.h1,
     color: colors.primary,
-    marginBottom: spacing.xs,
-  },
-  title: {
-    ...typography.h2,
-    color: colors.textPrimary,
+    textAlign: 'center',
     marginBottom: spacing.xs,
   },
   subtitle: {
     ...typography.body,
     color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   form: {
     gap: spacing.md,
@@ -247,13 +281,57 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.surface,
   },
+  inputOutline: {
+    borderRadius: borderRadius.md,
+  },
   error: {
     ...typography.bodySmall,
     color: colors.error,
     textAlign: 'center',
   },
-  linkButton: {
-    marginTop: spacing.xs,
+  primaryButton: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.xl,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.5,
+  },
+  primaryButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    ...typography.subtitle,
+    color: colors.textOnPrimary,
+  },
+  buttonIcon: {
+    marginRight: spacing.sm,
+  },
+  outlinedButton: {
+    borderRadius: borderRadius.xl,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    backgroundColor: 'transparent',
+  },
+  outlinedButtonText: {
+    ...typography.subtitle,
+    color: colors.primary,
+  },
+  textButton: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+  },
+  textButtonLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
   },
   dividerRow: {
     flexDirection: 'row',
@@ -267,15 +345,8 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     ...typography.caption,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
     marginHorizontal: spacing.md,
-  },
-  registerButton: {
-    borderRadius: borderRadius.xl,
-    borderColor: colors.primary,
-  },
-  registerButtonContent: {
-    paddingVertical: spacing.sm,
   },
   resetTitle: {
     ...typography.h3,

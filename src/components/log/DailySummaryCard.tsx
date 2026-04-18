@@ -2,9 +2,9 @@ import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows, logGradients } from '../../theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
+import { logBackgrounds } from '../../theme';
 import { FLUID_DAILY_TARGET_ML } from '../../utils/constants';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -40,25 +40,30 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
       icon: 'toilet' as const,
       value: `${summary.bowelCount + summary.urinationCount}`,
       label: t('insights.bathroomVisits'),
-      gradient: logGradients.bowel as [string, string],
+      iconColor: colors.logBowel,
+      bgColor: logBackgrounds.bowel,
     },
     {
       icon: 'cup-water' as const,
-      value: `${summary.fluidTotalMl}ml`,
+      value: `${summary.fluidTotalMl}`,
+      unit: 'ml',
       label: t('insights.fluidIntake'),
-      gradient: logGradients.urination as [string, string],
+      iconColor: colors.logUrination,
+      bgColor: logBackgrounds.urination,
     },
     {
       icon: 'pill' as const,
       value: `${summary.medicationsTaken}`,
       label: t('medication.taken'),
-      gradient: logGradients.medication as [string, string],
+      iconColor: colors.logMedication,
+      bgColor: logBackgrounds.medication,
     },
     {
       icon: 'food-apple' as const,
       value: `${summary.mealCount}`,
       label: t('careLog.meal'),
-      gradient: logGradients.meal as [string, string],
+      iconColor: colors.logMeal,
+      bgColor: logBackgrounds.meal,
     },
   ];
 
@@ -68,28 +73,38 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
 
       <View style={styles.grid}>
         {items.map((item) => (
-          <View key={item.icon} style={styles.cardWrapper}>
-            <LinearGradient
-              colors={item.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.card}
-            >
-              <MaterialCommunityIcons name={item.icon} size={24} color="#FFFFFF" />
+          <View key={item.icon} style={styles.card}>
+            {/* Icon circle */}
+            <View style={[styles.iconCircle, { backgroundColor: item.bgColor }]}>
+              <MaterialCommunityIcons
+                name={item.icon}
+                size={20}
+                color={item.iconColor}
+              />
+            </View>
+
+            {/* Value */}
+            <View style={styles.valueRow}>
               <Text style={styles.itemValue}>{item.value}</Text>
-              <Text style={styles.itemLabel} numberOfLines={1}>
-                {item.label}
-              </Text>
-            </LinearGradient>
+              {item.unit && <Text style={styles.itemUnit}>{item.unit}</Text>}
+            </View>
+
+            {/* Label */}
+            <Text style={styles.itemLabel} numberOfLines={1}>
+              {item.label}
+            </Text>
           </View>
         ))}
       </View>
 
       {/* Fluid progress bar */}
       <View style={styles.progressSection}>
-        <Text style={styles.progressLabel}>
-          {`${fluidPercent}% / ${FLUID_DAILY_TARGET_ML}ml`}
-        </Text>
+        <View style={styles.progressHeader}>
+          <Text style={styles.progressTitle}>{t('insights.fluidIntake')}</Text>
+          <Text style={styles.progressLabel}>
+            {`${fluidPercent}%`}
+          </Text>
+        </View>
         <View style={styles.progressBarBg}>
           <View
             style={[
@@ -97,11 +112,14 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
               {
                 width: `${fluidPercent}%`,
                 backgroundColor:
-                  fluidPercent >= 100 ? colors.success : colors.logUrination,
+                  fluidPercent >= 100 ? colors.success : colors.primary,
               },
             ]}
           />
         </View>
+        <Text style={styles.progressSubLabel}>
+          {`${summary.fluidTotalMl} / ${FLUID_DAILY_TARGET_ML}ml`}
+        </Text>
       </View>
     </View>
   );
@@ -121,45 +139,80 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: GAP,
   },
-  cardWrapper: {
-    width: CARD_WIDTH,
-  },
   card: {
+    width: CARD_WIDTH,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 100,
+    alignItems: 'flex-start',
     ...shadows.sm,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 2,
   },
   itemValue: {
     ...typography.dataLarge,
-    color: '#FFFFFF',
-    fontSize: 22,
-    marginTop: spacing.xs,
+    color: colors.textPrimary,
+    fontSize: 24,
+    lineHeight: 30,
+  },
+  itemUnit: {
+    ...typography.bodySmall,
+    color: colors.textTertiary,
+    fontWeight: '500',
   },
   itemLabel: {
     ...typography.caption,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   progressSection: {
     marginTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    ...shadows.sm,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  progressTitle: {
+    ...typography.bodySmall,
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   progressLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-    textAlign: 'right',
+    ...typography.bodySmall,
+    color: colors.primary,
+    fontWeight: '700',
   },
   progressBarBg: {
-    height: 8,
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: 4,
+    height: 6,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
+  },
+  progressSubLabel: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
+    textAlign: 'right',
   },
 });

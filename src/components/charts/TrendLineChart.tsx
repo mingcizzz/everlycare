@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.bodySmall,
-    color: colors.textDisabled,
+    color: colors.textTertiary,
   },
 });
