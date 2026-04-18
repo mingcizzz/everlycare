@@ -1,7 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Text, Avatar, Switch, Divider } from 'react-native-paper';
+import { Text, Switch } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -23,6 +29,16 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   const { language, setLanguage } = useSettingsStore();
 
   const isEnglish = language === 'en';
+
+  const getDaysActive = () => {
+    if (!user?.createdAt) return 0;
+    const created = new Date(user.createdAt);
+    const now = new Date();
+    const diff = Math.floor(
+      (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return Math.max(diff, 1);
+  };
 
   const handleCopyId = async () => {
     if (user?.id) {
@@ -95,38 +111,48 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.profileRow}>
-            <Avatar.Text
-              size={56}
-              label={user?.displayName?.charAt(0)?.toUpperCase() || '?'}
-              style={styles.avatar}
-              labelStyle={styles.avatarLabel}
-              color={colors.surface}
-            />
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>
-                {user?.displayName || 'User'}
+        {/* Profile Section - Centered, no card */}
+        <View style={styles.profileSection}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>
+              {user?.displayName?.charAt(0)?.toUpperCase() || '?'}
+            </Text>
+          </View>
+          <Text style={styles.profileName}>
+            {user?.displayName || 'User'}
+          </Text>
+          <Text style={styles.profileRole}>{t('careTeam.primary')}</Text>
+          {user?.id && (
+            <TouchableOpacity
+              onPress={handleCopyId}
+              activeOpacity={0.6}
+              style={styles.userIdRow}
+            >
+              <Text style={styles.userId}>
+                ID: {user.id.slice(0, 8)}...
               </Text>
-              <Text style={styles.profileRole}>{t('careTeam.primary')}</Text>
-              {user?.id && (
-                <TouchableOpacity
-                  onPress={handleCopyId}
-                  activeOpacity={0.6}
-                  style={styles.userIdRow}
-                >
-                  <Text style={styles.userId}>
-                    ID: {user.id.slice(0, 8)}...
-                  </Text>
-                  <MaterialCommunityIcons
-                    name="content-copy"
-                    size={12}
-                    color={colors.textTertiary}
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
+              <MaterialCommunityIcons
+                name={'content-copy' as any}
+                size={11}
+                color={colors.textTertiary}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{getDaysActive()}</Text>
+            <Text style={styles.statLabel}>Days Active</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>--</Text>
+            <Text style={styles.statLabel}>Total Logs</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>1</Text>
+            <Text style={styles.statLabel}>Team</Text>
           </View>
         </View>
 
@@ -145,8 +171,8 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
                 ]}
               >
                 <MaterialCommunityIcons
-                  name="translate"
-                  size={18}
+                  name={'translate' as any}
+                  size={20}
                   color={colors.tertiary}
                 />
               </View>
@@ -161,7 +187,7 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
 
           {SETTINGS_ITEMS.map((item, index) => (
             <React.Fragment key={item.key}>
-              <Divider style={styles.divider} />
+              <View style={styles.divider} />
               <TouchableOpacity
                 style={styles.settingRow}
                 onPress={() => handleNavigate(item.key)}
@@ -176,7 +202,7 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
                   >
                     <MaterialCommunityIcons
                       name={item.icon as any}
-                      size={18}
+                      size={20}
                       color={item.color}
                     />
                   </View>
@@ -185,7 +211,7 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
                   </Text>
                 </View>
                 <MaterialCommunityIcons
-                  name="chevron-right"
+                  name={'chevron-right' as any}
                   size={22}
                   color={colors.textTertiary}
                 />
@@ -216,6 +242,10 @@ export function SettingsScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Styles                                                             */
+/* ------------------------------------------------------------------ */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -227,56 +257,85 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 
-  // Profile Card
-  profileCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    ...shadows.md,
-    marginBottom: spacing.lg,
-  },
-  profileRow: {
-    flexDirection: 'row',
+  // Profile Section - Centered, no card
+  profileSection: {
     alignItems: 'center',
-    gap: spacing.md,
+    paddingVertical: spacing.lg,
+    marginBottom: spacing.md,
   },
-  avatar: {
+  avatarCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
-  avatarLabel: {
-    fontSize: 22,
+  avatarText: {
+    fontSize: 28,
     fontWeight: '700',
-  },
-  profileInfo: {
-    flex: 1,
+    color: '#FFFFFF',
   },
   profileName: {
-    ...typography.h3,
+    fontSize: 24,
+    fontWeight: '700',
     color: colors.textPrimary,
+    textAlign: 'center',
   },
   profileRole: {
-    ...typography.caption,
+    fontSize: 14,
+    fontWeight: '400',
     color: colors.textSecondary,
     marginTop: 2,
+    textAlign: 'center',
   },
   userIdRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
   userId: {
-    ...typography.caption,
+    fontSize: 12,
     color: colors.textTertiary,
-    fontFamily: undefined,
+  },
+
+  // Stats Row
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: colors.textTertiary,
+    marginTop: 2,
   },
 
   // Section Label
   sectionLabel: {
-    ...typography.caption,
+    fontSize: 12,
     color: colors.textTertiary,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginBottom: spacing.sm,
     marginLeft: spacing.xs,
   },
@@ -284,10 +343,14 @@ const styles = StyleSheet.create({
   // Settings Card
   settingsCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 20,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
     marginBottom: spacing.lg,
   },
   settingRow: {
@@ -302,42 +365,49 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
   settingLabel: {
-    ...typography.body,
+    fontSize: 15,
+    fontWeight: '400',
     color: colors.textPrimary,
   },
   divider: {
+    height: StyleSheet.hairlineWidth,
     backgroundColor: colors.borderLight,
-    marginLeft: 36 + spacing.md,
+    marginLeft: 44 + spacing.md,
   },
 
   // Log Out
   logoutCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 20,
     paddingVertical: spacing.md,
     alignItems: 'center',
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
     marginBottom: spacing.md,
   },
   logoutText: {
-    ...typography.subtitle,
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.error,
   },
 
   // Delete Account
   deleteButton: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
   },
   deleteText: {
-    ...typography.caption,
+    fontSize: 13,
     color: colors.textTertiary,
   },
 });

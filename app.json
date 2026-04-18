@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4A9BAD"
+      "backgroundColor": "#0D9488"
     },
     "ios": {
       "supportsTablet": true,
@@ -26,7 +26,7 @@
       "package": "com.everlycare.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#4A9BAD"
+        "backgroundColor": "#0D9488"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -43,7 +43,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#4A9BAD"
+          "color": "#0D9488"
         }
       ],
       "expo-localization"
@@ -55,7 +55,7 @@
     },
     "description": "A bilingual caregiving app for family caregivers of elderly Alzheimer's patients. Track daily care routines, medications, meals, and more.",
     "githubUrl": "https://github.com/mingcizzz/everlycare",
-    "primaryColor": "#4A9BAD",
+    "primaryColor": "#0D9488",
     "owner": "lanqianlong"
   }
 }

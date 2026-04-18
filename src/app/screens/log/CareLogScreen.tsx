@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   Alert,
   TouchableOpacity,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -18,20 +19,65 @@ import type { MainTabScreenProps } from '../../../types/navigation';
 import { QuickLogSheet } from './QuickLogSheet';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_GAP = spacing.sm;
+const CARD_GAP = 12;
 const CARD_PADDING = spacing.md;
 const CARD_WIDTH = (SCREEN_WIDTH - CARD_PADDING * 2 - CARD_GAP) / 2;
 
-const LOG_TYPES: LogType[] = [
-  'bowel',
-  'urination',
-  'meal',
-  'medication',
-  'mood',
-  'hygiene',
-  'activity',
-  'note',
-];
+const ESSENTIAL_TYPES: LogType[] = ['bowel', 'urination', 'meal', 'medication'];
+const WELLNESS_TYPES: LogType[] = ['mood', 'hygiene', 'activity', 'note'];
+
+interface LogCardProps {
+  type: LogType;
+  onPress: () => void;
+}
+
+function LogCard({ type, onPress }: LogCardProps) {
+  const { t } = useTranslation();
+  const config = LOG_TYPE_CONFIG[type];
+  const bgColor = logBackgrounds[type] || colors.surface;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  return (
+    <Animated.View style={[styles.cardWrapper, { transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={styles.logCard}
+      >
+        <View style={[styles.iconCircle, { backgroundColor: bgColor }]}>
+          <MaterialCommunityIcons
+            name={config.icon as any}
+            size={24}
+            color={config.color}
+          />
+        </View>
+        <Text style={styles.logLabel} numberOfLines={1}>
+          {t(config.labelKey)}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
   const { t } = useTranslation();
@@ -60,43 +106,41 @@ export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>{t('home.quickLog')}</Text>
+        <Text style={styles.title}>Log Care</Text>
         <Text style={styles.subtitle}>
           {t('home.caringFor', { name: activeRecipient.name })}
         </Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.grid}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {LOG_TYPES.map((type) => {
-          const config = LOG_TYPE_CONFIG[type];
-          const bgColor = logBackgrounds[type] || colors.surface;
-
-          return (
-            <TouchableOpacity
+        {/* Essential Section */}
+        <Text style={styles.sectionLabel}>ESSENTIAL</Text>
+        <View style={styles.grid}>
+          {ESSENTIAL_TYPES.map((type) => (
+            <LogCard
               key={type}
-              activeOpacity={0.85}
+              type={type}
               onPress={() => setSelectedLogType(type)}
-              style={styles.cardWrapper}
-            >
-              <View style={styles.logCard}>
-                <View style={[styles.iconCircle, { backgroundColor: bgColor }]}>
-                  <MaterialCommunityIcons
-                    name={config.icon as any}
-                    size={28}
-                    color={config.color}
-                  />
-                </View>
-                <Text style={styles.logLabel} numberOfLines={1}>
-                  {t(config.labelKey)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+            />
+          ))}
+        </View>
+
+        {/* Wellness Section */}
+        <Text style={styles.sectionLabel}>WELLNESS</Text>
+        <View style={styles.grid}>
+          {WELLNESS_TYPES.map((type) => (
+            <LogCard
+              key={type}
+              type={type}
+              onPress={() => setSelectedLogType(type)}
+            />
+          ))}
+        </View>
       </ScrollView>
 
       {selectedLogType && (
@@ -117,7 +161,7 @@ export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFB',
   },
   header: {
     paddingHorizontal: spacing.md,
@@ -125,45 +169,70 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   title: {
-    ...typography.h2,
-    color: colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#64748B',
+    marginTop: 4,
   },
+  scrollContent: {
+    paddingHorizontal: CARD_PADDING,
+    paddingBottom: spacing.xxl,
+  },
+
+  /* Section Labels */
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94A3B8',
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    marginTop: spacing.lg,
+    paddingHorizontal: 4,
+  },
+
+  /* Grid */
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: CARD_PADDING,
     gap: CARD_GAP,
-    paddingBottom: spacing.xxl,
   },
   cardWrapper: {
     width: CARD_WIDTH,
   },
   logCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    height: 130,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
   },
   iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
   logLabel: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
     textAlign: 'center',
   },
+
+  /* Empty State */
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -181,13 +250,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   emptyTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
     textAlign: 'center',
   },
   emptySubtitle: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#64748B',
     textAlign: 'center',
   },
 });

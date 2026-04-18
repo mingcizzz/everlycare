@@ -3,12 +3,11 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
-import { logBackgrounds } from '../../theme';
+import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../theme';
 import { FLUID_DAILY_TARGET_ML } from '../../utils/constants';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const GAP = spacing.sm;
+const GAP = 12;
 const PADDING = spacing.md;
 const CARD_WIDTH = (SCREEN_WIDTH - PADDING * 2 - GAP) / 2;
 
@@ -29,11 +28,6 @@ interface DailySummaryCardProps {
 
 export function DailySummaryCard({ summary }: DailySummaryCardProps) {
   const { t } = useTranslation();
-
-  const fluidPercent = Math.min(
-    100,
-    Math.round((summary.fluidTotalMl / FLUID_DAILY_TARGET_ML) * 100)
-  );
 
   const items = [
     {
@@ -74,52 +68,24 @@ export function DailySummaryCard({ summary }: DailySummaryCardProps) {
       <View style={styles.grid}>
         {items.map((item) => (
           <View key={item.icon} style={styles.card}>
-            {/* Icon circle */}
             <View style={[styles.iconCircle, { backgroundColor: item.bgColor }]}>
               <MaterialCommunityIcons
                 name={item.icon}
-                size={20}
+                size={22}
                 color={item.iconColor}
               />
             </View>
 
-            {/* Value */}
             <View style={styles.valueRow}>
               <Text style={styles.itemValue}>{item.value}</Text>
               {item.unit && <Text style={styles.itemUnit}>{item.unit}</Text>}
             </View>
 
-            {/* Label */}
             <Text style={styles.itemLabel} numberOfLines={1}>
               {item.label}
             </Text>
           </View>
         ))}
-      </View>
-
-      {/* Fluid progress bar */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>{t('insights.fluidIntake')}</Text>
-          <Text style={styles.progressLabel}>
-            {`${fluidPercent}%`}
-          </Text>
-        </View>
-        <View style={styles.progressBarBg}>
-          <View
-            style={[
-              styles.progressBarFill,
-              {
-                width: `${fluidPercent}%`,
-                backgroundColor:
-                  fluidPercent >= 100 ? colors.success : colors.primary,
-              },
-            ]}
-          />
-        </View>
-        <Text style={styles.progressSubLabel}>
-          {`${summary.fluidTotalMl} / ${FLUID_DAILY_TARGET_ML}ml`}
-        </Text>
       </View>
     </View>
   );
@@ -130,8 +96,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
+    letterSpacing: -0.3,
     marginBottom: spacing.md,
   },
   grid: {
@@ -141,16 +109,20 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
     alignItems: 'flex-start',
-    ...shadows.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
@@ -161,58 +133,20 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   itemValue: {
-    ...typography.dataLarge,
-    color: colors.textPrimary,
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
+    letterSpacing: -0.5,
   },
   itemUnit: {
-    ...typography.bodySmall,
-    color: colors.textTertiary,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#94A3B8',
   },
   itemLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#64748B',
     marginTop: 2,
-  },
-  progressSection: {
-    marginTop: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    ...shadows.sm,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  progressTitle: {
-    ...typography.bodySmall,
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  progressLabel: {
-    ...typography.bodySmall,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressSubLabel: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
-    textAlign: 'right',
   },
 });

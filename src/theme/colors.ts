@@ -1,9 +1,9 @@
 export const colors = {
-  // Primary — refined teal (matches logo, professional tone)
-  primary: '#2E8B9A',
-  primaryLight: '#E8F4F7',
-  primaryDark: '#1D6B78',
-  primaryMuted: '#2E8B9A20',
+  // Primary — rich teal (premium, matches logo)
+  primary: '#0D9488',
+  primaryLight: '#E6F7F5',
+  primaryDark: '#0A7B71',
+  primaryMuted: '#0D948815',
 
   // Secondary — warm coral for accents
   secondary: '#FF7B6F',
@@ -22,16 +22,16 @@ export const colors = {
   successLight: '#EEFBF3',
   info: '#3B82F6',
 
-  // Backgrounds
-  background: '#F7F8FA',
+  // Backgrounds — warm, premium
+  background: '#F8FAFB',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
   surfaceSecondary: '#F0F2F5',
 
-  // Text
-  textPrimary: '#1A1D26',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  // Text — premium contrast
+  textPrimary: '#1E293B',
+  textSecondary: '#64748B',
+  textTertiary: '#94A3B8',
   textOnPrimary: '#FFFFFF',
   textOnGradient: '#FFFFFF',
 

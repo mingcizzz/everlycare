@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -6,29 +6,95 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Svg, { Circle } from 'react-native-svg';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
-import { DailySummaryCard } from '../../../components/log/DailySummaryCard';
+import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../../theme';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
 import { QuickLogSheet } from '../log/QuickLogSheet';
 import { getToday } from '../../../utils/date';
+import { FLUID_DAILY_TARGET_ML } from '../../../utils/constants';
 import type { MainTabScreenProps } from '../../../types/navigation';
 import type { LogType } from '../../../types/careLog';
 
-const QUICK_ACTIONS: { type: LogType; icon: string; color: string; bg: string }[] = [
-  { type: 'bowel', icon: 'toilet', color: colors.logBowel, bg: '#F5F0EB' },
-  { type: 'urination', icon: 'water', color: colors.logUrination, bg: '#EFF6FF' },
-  { type: 'meal', icon: 'food-apple', color: colors.logMeal, bg: '#FFFBEB' },
-  { type: 'medication', icon: 'pill', color: colors.logMedication, bg: '#F5F3FF' },
-];
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const STAT_CARD_WIDTH = SCREEN_WIDTH * 0.42;
+const STAT_CARD_HEIGHT = 130;
+const STAT_CARD_GAP = 12;
+
+const RING_SIZE = 140;
+const RING_STROKE = 10;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const TARGET_LOGS = 8;
+
+function getGreeting(): { text: string; emoji: string } {
+  const hour = new Date().getHours();
+  if (hour < 12) return { text: 'Good morning', emoji: '\u2600\uFE0F' };
+  if (hour < 18) return { text: 'Good afternoon', emoji: '\uD83C\uDF24' };
+  return { text: 'Good evening', emoji: '\uD83C\uDF19' };
+}
+
+interface StatCardProps {
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+  value: string;
+  label: string;
+}
+
+function StatCard({ icon, iconColor, iconBg, value, label }: StatCardProps) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
+    }).start();
+  };
+
+  return (
+    <Animated.View style={[styles.statCard, { transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        style={styles.statCardInner}
+      >
+        <View style={[styles.statIconCircle, { backgroundColor: iconBg }]}>
+          <MaterialCommunityIcons
+            name={icon as any}
+            size={22}
+            color={iconColor}
+          />
+        </View>
+        <View style={styles.statBottom}>
+          <Text style={styles.statValue}>{value}</Text>
+          <Text style={styles.statLabel} numberOfLines={1}>{label}</Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { t } = useTranslation();
@@ -39,6 +105,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const [quickLogType, setQuickLogType] = useState<LogType | null>(null);
 
   const today = getToday();
+  const greeting = getGreeting();
 
   const refresh = useCallback(async () => {
     await loadRecipients();
@@ -56,15 +123,42 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     }, [refresh])
   );
 
-  const greeting = user?.displayName
-    ? t('home.greeting', { name: user.displayName })
-    : t('common.appName');
+  // Care completion ring progress
+  const totalLogs = dailySummary?.totalLogs ?? 0;
+  const progress = Math.min(1, totalLogs / Math.max(1, TARGET_LOGS));
+  const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
 
-  const formattedDate = new Date().toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+  // Stat cards data
+  const statCards: StatCardProps[] = [
+    {
+      icon: 'toilet',
+      iconColor: colors.logBowel,
+      iconBg: logBackgrounds.bowel,
+      value: `${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`,
+      label: t('insights.bathroomVisits'),
+    },
+    {
+      icon: 'cup-water',
+      iconColor: colors.logUrination,
+      iconBg: logBackgrounds.urination,
+      value: `${dailySummary?.fluidTotalMl ?? 0}ml`,
+      label: t('insights.fluidIntake'),
+    },
+    {
+      icon: 'pill',
+      iconColor: colors.logMedication,
+      iconBg: logBackgrounds.medication,
+      value: `${dailySummary?.medicationsTaken ?? 0}`,
+      label: t('medication.taken'),
+    },
+    {
+      icon: 'food-apple',
+      iconColor: colors.logMeal,
+      iconBg: logBackgrounds.meal,
+      value: `${dailySummary?.mealCount ?? 0}`,
+      label: t('careLog.meal'),
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -75,51 +169,73 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>{greeting}</Text>
-            <Text style={styles.dateText}>{formattedDate}</Text>
-          </View>
+        {/* 1. Greeting Section */}
+        <View style={styles.greetingSection}>
+          <Text style={styles.greetingTime}>
+            {greeting.text} {greeting.emoji}
+          </Text>
+          <Text style={styles.greetingName}>
+            {user?.displayName || t('common.appName')}
+          </Text>
           {activeRecipient && (
-            <View style={styles.recipientBadge}>
-              <MaterialCommunityIcons
-                name="account-heart"
-                size={16}
-                color={colors.primary}
-              />
-              <Text style={styles.recipientName}>{activeRecipient.name}</Text>
-            </View>
+            <Text style={styles.caringFor}>
+              {t('home.caringFor', { name: activeRecipient.name })}
+            </Text>
           )}
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActionsRow}>
-          {QUICK_ACTIONS.map((action) => (
-            <TouchableOpacity
-              key={action.type}
-              style={styles.quickAction}
-              activeOpacity={0.7}
-              onPress={() => setQuickLogType(action.type)}
-            >
-              <View style={[styles.quickActionCircle, { backgroundColor: action.bg }]}>
-                <MaterialCommunityIcons
-                  name={action.icon as any}
-                  size={22}
-                  color={action.color}
+        {/* 2. Care Completion Ring */}
+        {dailySummary && (
+          <View style={styles.ringCard}>
+            <View style={styles.ringContainer}>
+              <Svg width={RING_SIZE} height={RING_SIZE}>
+                {/* Track */}
+                <Circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_RADIUS}
+                  stroke={colors.surfaceSecondary}
+                  strokeWidth={RING_STROKE}
+                  fill="none"
                 />
+                {/* Progress */}
+                <Circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_RADIUS}
+                  stroke={colors.primary}
+                  strokeWidth={RING_STROKE}
+                  strokeLinecap="round"
+                  fill="none"
+                  strokeDasharray={`${RING_CIRCUMFERENCE}`}
+                  strokeDashoffset={strokeDashoffset}
+                  rotation={-90}
+                  origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
+                />
+              </Svg>
+              <View style={styles.ringTextContainer}>
+                <Text style={styles.ringCount}>{totalLogs}</Text>
+                <Text style={styles.ringLabel}>logs today</Text>
               </View>
-              <Text style={styles.quickActionLabel} numberOfLines={1}>
-                {t(`careLog.${action.type}`)}
-              </Text>
-            </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* 3. Quick Stats — Horizontal ScrollView */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={STAT_CARD_WIDTH + STAT_CARD_GAP}
+          decelerationRate="fast"
+          contentContainerStyle={styles.statsRow}
+          style={styles.statsScroll}
+        >
+          {statCards.map((card) => (
+            <StatCard key={card.icon} {...card} />
           ))}
-        </View>
+        </ScrollView>
 
-        {/* Today's Summary */}
-        {dailySummary && <DailySummaryCard summary={dailySummary} />}
-
-        {/* Timeline */}
+        {/* 4. Timeline Section */}
         <View style={styles.timelineSection}>
           <View style={styles.timelineHeader}>
             <Text style={styles.sectionTitle}>{t('home.timeline')}</Text>
@@ -130,24 +246,35 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
               <Text style={styles.seeAllLink}>{t('common.seeAll')}</Text>
             </TouchableOpacity>
           </View>
-          <TimelineFeed logs={logs.slice(0, 5)} />
+          {logs.length > 0 ? (
+            <TimelineFeed logs={logs.slice(0, 5)} />
+          ) : (
+            <View style={styles.emptyTimeline}>
+              <View style={styles.emptyIconCircle}>
+                <MaterialCommunityIcons
+                  name="clipboard-text-clock-outline"
+                  size={48}
+                  color={colors.textTertiary}
+                />
+              </View>
+              <Text style={styles.emptyText}>
+                {t('home.noLogsYet', { defaultValue: 'No logs yet today' })}
+              </Text>
+              <Text style={styles.emptySubtext}>
+                {t('home.tapToStart', { defaultValue: 'Tap + to start logging care' })}
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
-      {/* FAB */}
+      {/* 5. FAB */}
       <TouchableOpacity
-        style={styles.fabContainer}
+        style={styles.fab}
         onPress={() => navigation.navigate('Log')}
         activeOpacity={0.85}
       >
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd] as [string, string]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fab}
-        >
-          <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
-        </LinearGradient>
+        <MaterialCommunityIcons name="plus" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
       {/* Quick Log Bottom Sheet */}
@@ -169,80 +296,124 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFB',
   },
   scrollContent: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: 100,
   },
 
-  /* Header */
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  greeting: {
-    ...typography.h2,
-    color: colors.textPrimary,
-  },
-  dateText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  recipientBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-    gap: 4,
-    marginTop: 4,
-  },
-  recipientName: {
-    ...typography.caption,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-
-  /* Quick Actions */
-  quickActionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  /* 1. Greeting */
+  greetingSection: {
     marginBottom: spacing.lg,
     paddingHorizontal: spacing.xs,
   },
-  quickAction: {
-    alignItems: 'center',
-    gap: spacing.xs,
+  greetingTime: {
+    fontSize: 15,
+    fontWeight: '400',
+    color: '#64748B',
+    marginBottom: 4,
   },
-  quickActionCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  greetingName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
+    letterSpacing: -0.5,
+  },
+  caringFor: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#64748B',
+    marginTop: 4,
+  },
+
+  /* 2. Completion Ring Card */
+  ringCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
+  },
+  ringContainer: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringTextContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringCount: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#1E293B',
+    letterSpacing: -1.0,
+  },
+  ringLabel: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#64748B',
+    marginTop: 2,
+  },
+
+  /* 3. Quick Stats */
+  statsScroll: {
+    marginBottom: spacing.lg,
+    marginHorizontal: -spacing.md,
+  },
+  statsRow: {
+    paddingHorizontal: spacing.md,
+    gap: STAT_CARD_GAP,
+  },
+  statCard: {
+    width: STAT_CARD_WIDTH,
+    height: STAT_CARD_HEIGHT,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
+  },
+  statCardInner: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    ...shadows.sm,
   },
-  quickActionLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    maxWidth: 72,
-    textAlign: 'center',
+  statBottom: {
+    marginTop: 'auto',
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
+    letterSpacing: -0.5,
+  },
+  statLabel: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#64748B',
+    marginTop: 2,
   },
 
-  /* Section */
-  sectionTitle: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
-  },
-
-  /* Timeline */
+  /* 4. Timeline */
   timelineSection: {
     marginBottom: spacing.lg,
   },
@@ -251,25 +422,59 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1E293B',
+    letterSpacing: -0.3,
   },
   seeAllLink: {
-    ...typography.bodySmall,
-    color: colors.primary,
+    fontSize: 14,
     fontWeight: '600',
+    color: colors.primary,
+  },
+  emptyTimeline: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surfaceSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#94A3B8',
   },
 
-  /* FAB */
-  fabContainer: {
-    position: 'absolute',
-    right: spacing.lg,
-    bottom: spacing.xl,
-    ...shadows.lg,
-  },
+  /* 5. FAB */
   fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 16,
+    shadowOpacity: 0.08,
+    elevation: 4,
   },
 });

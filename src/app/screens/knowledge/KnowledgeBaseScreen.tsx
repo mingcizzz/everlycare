@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -70,9 +71,20 @@ export function KnowledgeBaseScreen({
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('knowledge.title')}</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('AddArticle')}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons
+            name={'plus' as any}
+            size={20}
+            color="#FFFFFF"
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Category Filter */}
+      {/* Category Pills */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -82,15 +94,13 @@ export function KnowledgeBaseScreen({
         <TouchableOpacity
           style={[
             styles.chip,
-            !selectedCategory
-              ? styles.chipActive
-              : styles.chipInactive,
+            !selectedCategory ? styles.chipActive : styles.chipInactive,
           ]}
           onPress={() => setSelectedCategory(null)}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons
-            name="view-grid"
+            name={'view-grid' as any}
             size={14}
             color={!selectedCategory ? '#FFFFFF' : colors.primary}
           />
@@ -148,11 +158,11 @@ export function KnowledgeBaseScreen({
         {articles.length === 0 && !isLoading ? (
           <View style={styles.emptyContainer}>
             <MaterialCommunityIcons
-              name="book-open-page-variant"
-              size={64}
+              name={'book-open-page-variant' as any}
+              size={48}
               color={colors.textTertiary}
             />
-            <Text style={styles.emptyTitle}>{t('common.noData')}</Text>
+            <Text style={styles.emptyText}>{t('common.noData')}</Text>
           </View>
         ) : (
           articles.map((article) => {
@@ -176,80 +186,113 @@ export function KnowledgeBaseScreen({
               CATEGORY_LABELS[article.category] || 'knowledge.dailyCare';
 
             return (
-              <TouchableOpacity
+              <ArticleCard
                 key={article.id}
-                activeOpacity={0.7}
+                title={title}
+                preview={preview}
+                meta={meta}
+                catLabel={t(catLabel)}
                 onPress={() =>
                   navigation.navigate('ArticleDetail', {
                     articleId: article.id,
                   })
                 }
-              >
-                <View
-                  style={[
-                    styles.articleCard,
-                    { borderLeftColor: meta.color },
-                  ]}
-                >
-                  <View style={styles.articleRow}>
-                    {/* Icon */}
-                    <View
-                      style={[
-                        styles.articleIconCircle,
-                        { backgroundColor: meta.color + '12' },
-                      ]}
-                    >
-                      <MaterialCommunityIcons
-                        name={meta.icon as any}
-                        size={22}
-                        color={meta.color}
-                      />
-                    </View>
-
-                    {/* Text Content */}
-                    <View style={styles.articleTextWrap}>
-                      <Text style={styles.articleTitle} numberOfLines={2}>
-                        {title}
-                      </Text>
-                      <Text style={styles.articlePreview} numberOfLines={2}>
-                        {preview}
-                      </Text>
-                      {/* Category Tag */}
-                      <View
-                        style={[
-                          styles.categoryTag,
-                          { backgroundColor: meta.color + '12' },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.categoryTagText,
-                            { color: meta.color },
-                          ]}
-                        >
-                          {t(catLabel)}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
+              />
             );
           })
         )}
       </ScrollView>
+    </SafeAreaView>
+  );
+}
 
-      {/* FAB */}
+/* ------------------------------------------------------------------ */
+/*  ArticleCard with press animation                                   */
+/* ------------------------------------------------------------------ */
+
+function ArticleCard({
+  title,
+  preview,
+  meta,
+  catLabel,
+  onPress,
+}: {
+  title: string;
+  preview: string;
+  meta: { icon: string; color: string };
+  catLabel: string;
+  onPress: () => void;
+}) {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('AddArticle')}
-        activeOpacity={0.85}
+        activeOpacity={1}
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
       >
-        <View style={styles.fabInner}>
-          <MaterialCommunityIcons name="plus" size={26} color="#FFFFFF" />
+        <View style={styles.articleCard}>
+          <View style={styles.articleRow}>
+            {/* Icon */}
+            <View
+              style={[
+                styles.articleIconCircle,
+                { backgroundColor: meta.color + '15' },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={meta.icon as any}
+                size={24}
+                color={meta.color}
+              />
+            </View>
+
+            {/* Text Content */}
+            <View style={styles.articleTextWrap}>
+              <Text style={styles.articleTitle} numberOfLines={2}>
+                {title}
+              </Text>
+              <Text style={styles.articlePreview} numberOfLines={2}>
+                {preview}
+              </Text>
+              {/* Category Tag - bottom right */}
+              <View style={styles.categoryTagRow}>
+                <View style={{ flex: 1 }} />
+                <View
+                  style={[
+                    styles.categoryTag,
+                    { backgroundColor: meta.color + '18' },
+                  ]}
+                >
+                  <Text
+                    style={[styles.categoryTagText, { color: meta.color }]}
+                  >
+                    {catLabel}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
-    </SafeAreaView>
+    </Animated.View>
   );
 }
 
@@ -265,13 +308,25 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
   headerTitle: {
-    ...typography.h2,
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.textPrimary,
+  },
+  addButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Category Bar
@@ -284,9 +339,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   chipActive: {
     backgroundColor: colors.primary,
@@ -297,37 +352,41 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   chipText: {
-    ...typography.caption,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '400',
     color: colors.textPrimary,
   },
   chipTextActive: {
     color: '#FFFFFF',
+    fontWeight: '600',
   },
 
   // Content
   content: {
     paddingHorizontal: spacing.md,
-    paddingBottom: 100,
-    gap: spacing.sm,
+    paddingBottom: spacing.xxl,
+    gap: 12,
   },
 
   // Article Card
   articleCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    borderLeftWidth: 3,
-    ...shadows.sm,
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
   },
   articleRow: {
     flexDirection: 'row',
     gap: spacing.md,
   },
   articleIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
@@ -336,25 +395,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   articleTitle: {
-    ...typography.subtitle,
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.textPrimary,
     lineHeight: 22,
   },
   articlePreview: {
-    ...typography.caption,
+    fontSize: 13,
+    fontWeight: '400',
     color: colors.textSecondary,
     marginTop: spacing.xs,
     lineHeight: 18,
   },
-  categoryTag: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: borderRadius.full,
+  categoryTagRow: {
+    flexDirection: 'row',
     marginTop: spacing.sm,
   },
+  categoryTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
   categoryTagText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     lineHeight: 14,
   },
@@ -365,26 +428,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl * 2,
     paddingHorizontal: spacing.xl,
   },
-  emptyTitle: {
-    ...typography.subtitle,
+  emptyText: {
+    fontSize: 15,
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.md,
-  },
-
-  // FAB
-  fab: {
-    position: 'absolute',
-    right: spacing.md,
-    bottom: spacing.xl,
-    ...shadows.lg,
-  },
-  fabInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

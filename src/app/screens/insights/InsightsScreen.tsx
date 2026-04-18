@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Alert,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -93,6 +94,9 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
     return colors.error;
   };
 
+  const periodLabel =
+    period === 'daily' ? 'today' : period === 'weekly' ? 'this week' : 'this month';
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -107,26 +111,20 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
           <Text style={styles.headerTitle}>{t('insights.title')}</Text>
         </View>
 
-        {/* Period Selector + Export */}
-        <View style={styles.controlsRow}>
+        {/* Period Pills */}
+        <View style={styles.periodContainer}>
           <View style={styles.pillGroup}>
             {PERIODS.map((p) => {
               const isActive = period === p.key;
               return (
                 <TouchableOpacity
                   key={p.key}
-                  style={[
-                    styles.pill,
-                    isActive && styles.pillActive,
-                  ]}
+                  style={[styles.pill, isActive && styles.pillActive]}
                   onPress={() => setPeriod(p.key)}
                   activeOpacity={0.7}
                 >
                   <Text
-                    style={[
-                      styles.pillText,
-                      isActive && styles.pillTextActive,
-                    ]}
+                    style={[styles.pillText, isActive && styles.pillTextActive]}
                   >
                     {t(p.labelKey)}
                   </Text>
@@ -134,27 +132,6 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
               );
             })}
           </View>
-
-          <TouchableOpacity
-            style={styles.exportBtn}
-            onPress={handleExport}
-            disabled={isExporting || !hasData}
-            activeOpacity={0.6}
-          >
-            <MaterialCommunityIcons
-              name="file-export-outline"
-              size={16}
-              color={hasData ? colors.textSecondary : colors.textTertiary}
-            />
-            <Text
-              style={[
-                styles.exportText,
-                !hasData && { color: colors.textTertiary },
-              ]}
-            >
-              {t('insights.exportReport')}
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Content */}
@@ -162,20 +139,27 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIconCircle}>
               <MaterialCommunityIcons
-                name="chart-line"
-                size={64}
+                name={'chart-line' as any}
+                size={48}
                 color={colors.textTertiary}
               />
             </View>
-            <Text style={styles.emptyTitle}>{t('insights.noDataYet')}</Text>
-            <Text style={styles.emptySubtitle}>
+            <Text style={styles.emptyText}>
               {t('insights.noDataYet')}
             </Text>
           </View>
         ) : (
           <View style={styles.cardsContainer}>
+            {/* Hero Card - Total Logs */}
+            <View style={styles.heroCard}>
+              <Text style={styles.heroNumber}>{data.totalLogs}</Text>
+              <Text style={styles.heroLabel}>
+                care events {periodLabel}
+              </Text>
+            </View>
+
             {/* Bathroom Visits */}
-            <MetricCard
+            <PressableMetricCard
               icon="toilet"
               title={t('insights.bathroomVisits')}
               color={colors.logBowel}
@@ -184,10 +168,10 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
                 data={data.bathroomTrend}
                 lineColor={colors.logBowel}
               />
-            </MetricCard>
+            </PressableMetricCard>
 
             {/* Fluid Intake */}
-            <MetricCard
+            <PressableMetricCard
               icon="cup-water"
               title={t('insights.fluidIntake')}
               color={colors.logUrination}
@@ -197,10 +181,10 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
                 lineColor={colors.logUrination}
                 suffix="ml"
               />
-            </MetricCard>
+            </PressableMetricCard>
 
             {/* Incontinence Events */}
-            <MetricCard
+            <PressableMetricCard
               icon="alert-circle"
               title={t('insights.incontinenceEvents')}
               color={colors.error}
@@ -209,14 +193,27 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
                 data={data.incontinenceTrend}
                 lineColor={colors.error}
               />
-            </MetricCard>
+            </PressableMetricCard>
 
             {/* Medication Adherence */}
-            <MetricCard
-              icon="pill"
-              title={t('insights.medicationAdherence')}
-              color={colors.logMedication}
-            >
+            <View style={styles.metricCard}>
+              <View style={styles.metricHeader}>
+                <View
+                  style={[
+                    styles.metricIconCircle,
+                    { backgroundColor: colors.logMedication + '15' },
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name={'pill' as any}
+                    size={22}
+                    color={colors.logMedication}
+                  />
+                </View>
+                <Text style={styles.metricTitle}>
+                  {t('insights.medicationAdherence')}
+                </Text>
+              </View>
               <View style={styles.adherenceContainer}>
                 <Text
                   style={[
@@ -240,7 +237,24 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
                   />
                 </View>
               </View>
-            </MetricCard>
+            </View>
+
+            {/* Export Button */}
+            <TouchableOpacity
+              style={styles.exportBtn}
+              onPress={handleExport}
+              disabled={isExporting}
+              activeOpacity={0.6}
+            >
+              <MaterialCommunityIcons
+                name={'download' as any}
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.exportText}>
+                {t('insights.exportReport')}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -249,10 +263,10 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  MetricCard                                                         */
+/*  PressableMetricCard with scale animation                           */
 /* ------------------------------------------------------------------ */
 
-function MetricCard({
+function PressableMetricCard({
   icon,
   title,
   color,
@@ -263,25 +277,50 @@ function MetricCard({
   color: string;
   children: React.ReactNode;
 }) {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
-    <View style={[styles.metricCard, { borderLeftColor: color }]}>
-      <View style={styles.metricHeader}>
-        <View
-          style={[
-            styles.metricIconCircle,
-            { backgroundColor: color + '15' },
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={icon as any}
-            size={20}
-            color={color}
-          />
+    <Animated.View
+      style={[styles.metricCard, { transform: [{ scale: scaleAnim }] }]}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+      >
+        <View style={styles.metricHeader}>
+          <View
+            style={[
+              styles.metricIconCircle,
+              { backgroundColor: color + '15' },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={icon as any}
+              size={22}
+              color={color}
+            />
+          </View>
+          <Text style={styles.metricTitle}>{title}</Text>
         </View>
-        <Text style={styles.metricTitle}>{title}</Text>
-      </View>
-      <View style={styles.metricBody}>{children}</View>
-    </View>
+        <View style={styles.metricBody}>{children}</View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -305,49 +344,40 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   headerTitle: {
-    ...typography.h2,
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.textPrimary,
   },
 
-  // Controls
-  controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  // Period Pills
+  periodContainer: {
     paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   pillGroup: {
     flexDirection: 'row',
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.xl,
-    padding: 3,
+    borderRadius: 12,
+    padding: 4,
   },
   pill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.xl - 3,
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignItems: 'center',
   },
   pillActive: {
     backgroundColor: colors.primary,
   },
   pillText: {
-    ...typography.caption,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '400',
     color: colors.textSecondary,
   },
   pillTextActive: {
+    fontWeight: '600',
     color: '#FFFFFF',
-  },
-  exportBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  exportText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '500',
   },
 
   // Empty State
@@ -359,29 +389,52 @@ const styles = StyleSheet.create({
   emptyIconCircle: {
     marginBottom: spacing.md,
   },
-  emptyTitle: {
-    ...typography.subtitle,
+  emptyText: {
+    fontSize: 15,
     color: colors.textSecondary,
     textAlign: 'center',
-  },
-  emptySubtitle: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    textAlign: 'center',
-    marginTop: spacing.xs,
   },
 
   // Cards
   cardsContainer: {
     paddingHorizontal: spacing.md,
-    gap: spacing.md,
+    gap: 16,
   },
+
+  // Hero Card
+  heroCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
+  },
+  heroNumber: {
+    fontSize: 42,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: -1.0,
+  },
+  heroLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+
+  // Metric Card
   metricCard: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    borderLeftWidth: 3,
-    ...shadows.sm,
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    elevation: 3,
   },
   metricHeader: {
     flexDirection: 'row',
@@ -390,14 +443,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   metricIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
   metricTitle: {
-    ...typography.subtitle,
+    fontSize: 15,
+    fontWeight: '600',
     color: colors.textPrimary,
     flex: 1,
   },
@@ -411,8 +465,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   adherenceValue: {
-    ...typography.dataXL,
-    color: colors.textPrimary,
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: -1.0,
     marginBottom: spacing.md,
   },
   progressBarBg: {
@@ -425,5 +480,18 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 4,
+  },
+
+  // Export Button
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+  },
+  exportText: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });
