@@ -12,7 +12,7 @@ import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../../theme';
+import { colors, spacing, logBackgrounds } from '../../../theme';
 import { LOG_TYPE_CONFIG, type LogType } from '../../../types/careLog';
 import { useRecipientStore } from '../../../store/recipientStore';
 import type { MainTabScreenProps } from '../../../types/navigation';
@@ -20,7 +20,7 @@ import { QuickLogSheet } from './QuickLogSheet';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_GAP = 12;
-const CARD_PADDING = spacing.md;
+const CARD_PADDING = 16;
 const CARD_WIDTH = (SCREEN_WIDTH - CARD_PADDING * 2 - CARD_GAP) / 2;
 
 const ESSENTIAL_TYPES: LogType[] = ['bowel', 'urination', 'meal', 'medication'];
@@ -39,7 +39,7 @@ function LogCard({ type, onPress }: LogCardProps) {
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.97,
+      toValue: 0.95,
       useNativeDriver: true,
       speed: 50,
       bounciness: 4,
@@ -62,15 +62,13 @@ function LogCard({ type, onPress }: LogCardProps) {
         onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        style={styles.logCard}
+        style={[styles.logCard, { backgroundColor: bgColor }]}
       >
-        <View style={[styles.iconCircle, { backgroundColor: bgColor }]}>
-          <MaterialCommunityIcons
-            name={config.icon as any}
-            size={24}
-            color={config.color}
-          />
-        </View>
+        <MaterialCommunityIcons
+          name={config.icon as any}
+          size={36}
+          color={config.color}
+        />
         <Text style={styles.logLabel} numberOfLines={1}>
           {t(config.labelKey)}
         </Text>
@@ -118,8 +116,8 @@ export function CareLogScreen({ navigation }: MainTabScreenProps<'Log'>) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Essential Section */}
-        <Text style={styles.sectionLabel}>ESSENTIAL</Text>
+        {/* Essentials Section */}
+        <Text style={styles.sectionLabel}>ESSENTIALS</Text>
         <View style={styles.grid}>
           {ESSENTIAL_TYPES.map((type) => (
             <LogCard
@@ -164,20 +162,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFB',
   },
   header: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: CARD_PADDING,
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 4,
   },
   scrollContent: {
@@ -187,12 +185,12 @@ const styles = StyleSheet.create({
 
   /* Section Labels */
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#94A3B8',
-    letterSpacing: 1.5,
+    color: colors.textTertiary,
+    letterSpacing: 2,
     marginBottom: 12,
-    marginTop: spacing.lg,
+    marginTop: 24,
     paddingHorizontal: 4,
   },
 
@@ -206,30 +204,23 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
   logCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    height: 120,
+    borderRadius: 24,
+    height: 140,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 12,
-    shadowOpacity: 0.08,
-    elevation: 3,
-  },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    shadowOpacity: 0.06,
+    elevation: 2,
   },
   logLabel: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.textPrimary,
     textAlign: 'center',
+    marginTop: 12,
   },
 
   /* Empty State */
@@ -252,13 +243,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#64748B',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

@@ -69,14 +69,14 @@ export const logGradients: Record<string, [string, string]> = {
 
 // Semantic card backgrounds (light tint of log color)
 export const logBackgrounds: Record<string, string> = {
-  bowel: '#F5F0EB',
+  bowel: '#FDF2F0',
   urination: '#EFF6FF',
-  meal: '#FFFBEB',
-  medication: '#F5F3FF',
-  mood: '#FDF2F8',
-  hygiene: '#ECFEFF',
-  activity: '#FEF2F2',
-  note: '#F9FAFB',
+  meal: '#FFF8E1',
+  medication: '#F3E8FF',
+  mood: '#FFF0F6',
+  hygiene: '#E0F7FA',
+  activity: '#FBE9E7',
+  note: '#F5F5F5',
 };
 
 export type ColorToken = keyof typeof colors;

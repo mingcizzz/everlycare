@@ -20,7 +20,7 @@ const TAB_ICONS: Record<
   Log: { focused: 'plus-circle', unfocused: 'plus-circle-outline' },
   Insights: { focused: 'chart-bar', unfocused: 'chart-line' },
   Knowledge: { focused: 'lightbulb', unfocused: 'lightbulb-outline' },
-  Profile: { focused: 'account', unfocused: 'account-outline' },
+  Profile: { focused: 'account-circle', unfocused: 'account-circle-outline' },
 };
 
 export function MainTabNavigator() {
@@ -37,26 +37,26 @@ export function MainTabNavigator() {
                 ? TAB_ICONS[route.name].focused
                 : TAB_ICONS[route.name].unfocused) as any
             }
-            size={24}
+            size={22}
             color={color}
           />
         ),
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: '#FFFFFF',
           borderTopWidth: 0,
-          height: 60,
-          paddingBottom: 6,
-          ...shadows.sm,
+          height: 56,
+          paddingBottom: 4,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 6,
+          elevation: 2,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '400',
-        },
-        tabBarActiveLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
         },
         tabBarItemStyle: {
           paddingTop: 4,
@@ -66,27 +66,42 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: t('tabs.home') }}
+        options={{
+          tabBarLabel: t('tabs.home'),
+          tabBarLabelStyle: { fontSize: 10 },
+        }}
       />
       <Tab.Screen
         name="Log"
         component={CareLogScreen}
-        options={{ tabBarLabel: t('tabs.log') }}
+        options={{
+          tabBarLabel: t('tabs.log'),
+          tabBarLabelStyle: { fontSize: 10 },
+        }}
       />
       <Tab.Screen
         name="Insights"
         component={InsightsScreen}
-        options={{ tabBarLabel: t('tabs.insights') }}
+        options={{
+          tabBarLabel: t('tabs.insights'),
+          tabBarLabelStyle: { fontSize: 10 },
+        }}
       />
       <Tab.Screen
         name="Knowledge"
         component={KnowledgeBaseScreen}
-        options={{ tabBarLabel: t('tabs.knowledge') }}
+        options={{
+          tabBarLabel: t('tabs.knowledge'),
+          tabBarLabelStyle: { fontSize: 10 },
+        }}
       />
       <Tab.Screen
         name="Profile"
         component={SettingsScreen}
-        options={{ tabBarLabel: t('tabs.profile') }}
+        options={{
+          tabBarLabel: t('tabs.profile'),
+          tabBarLabelStyle: { fontSize: 10 },
+        }}
       />
     </Tab.Navigator>
   );

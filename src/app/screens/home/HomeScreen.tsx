@@ -12,26 +12,26 @@ import {
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Svg, { Circle } from 'react-native-svg';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
-import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../../theme';
+import { colors, spacing, borderRadius, shadows, logBackgrounds } from '../../../theme';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
 import { QuickLogSheet } from '../log/QuickLogSheet';
 import { getToday } from '../../../utils/date';
-import { FLUID_DAILY_TARGET_ML } from '../../../utils/constants';
 import type { MainTabScreenProps } from '../../../types/navigation';
 import type { LogType } from '../../../types/careLog';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const STAT_CARD_WIDTH = SCREEN_WIDTH * 0.42;
-const STAT_CARD_HEIGHT = 130;
-const STAT_CARD_GAP = 12;
+const CARD_GAP = 12;
+const GRID_PADDING = 20;
+const STAT_CARD_WIDTH = (SCREEN_WIDTH - GRID_PADDING * 2 - CARD_GAP) / 2;
 
-const RING_SIZE = 140;
-const RING_STROKE = 10;
+const RING_SIZE = 120;
+const RING_STROKE = 8;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const TARGET_LOGS = 8;
@@ -43,20 +43,40 @@ function getGreeting(): { text: string; emoji: string } {
   return { text: 'Good evening', emoji: '\uD83C\uDF19' };
 }
 
+/* ── Quick Action Pill ── */
+interface QuickActionProps {
+  emoji: string;
+  label: string;
+  onPress: () => void;
+}
+
+function QuickActionPill({ emoji, label, onPress }: QuickActionProps) {
+  return (
+    <TouchableOpacity
+      style={styles.quickPill}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.quickPillEmoji}>{emoji}</Text>
+      <Text style={styles.quickPillLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+/* ── Stat Card ── */
 interface StatCardProps {
-  icon: string;
-  iconColor: string;
-  iconBg: string;
+  emoji: string;
+  bgColor: string;
   value: string;
   label: string;
 }
 
-function StatCard({ icon, iconColor, iconBg, value, label }: StatCardProps) {
+function StatCard({ emoji, bgColor, value, label }: StatCardProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.97,
+      toValue: 0.96,
       useNativeDriver: true,
       speed: 50,
       bounciness: 4,
@@ -78,15 +98,9 @@ function StatCard({ icon, iconColor, iconBg, value, label }: StatCardProps) {
         activeOpacity={1}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        style={styles.statCardInner}
+        style={[styles.statCardInner, { backgroundColor: bgColor }]}
       >
-        <View style={[styles.statIconCircle, { backgroundColor: iconBg }]}>
-          <MaterialCommunityIcons
-            name={icon as any}
-            size={22}
-            color={iconColor}
-          />
-        </View>
+        <Text style={styles.statEmoji}>{emoji}</Text>
         <View style={styles.statBottom}>
           <Text style={styles.statValue}>{value}</Text>
           <Text style={styles.statLabel} numberOfLines={1}>{label}</Text>
@@ -96,6 +110,7 @@ function StatCard({ icon, iconColor, iconBg, value, label }: StatCardProps) {
   );
 }
 
+/* ── Home Screen ── */
 export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -128,38 +143,6 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const progress = Math.min(1, totalLogs / Math.max(1, TARGET_LOGS));
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
 
-  // Stat cards data
-  const statCards: StatCardProps[] = [
-    {
-      icon: 'toilet',
-      iconColor: colors.logBowel,
-      iconBg: logBackgrounds.bowel,
-      value: `${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`,
-      label: t('insights.bathroomVisits'),
-    },
-    {
-      icon: 'cup-water',
-      iconColor: colors.logUrination,
-      iconBg: logBackgrounds.urination,
-      value: `${dailySummary?.fluidTotalMl ?? 0}ml`,
-      label: t('insights.fluidIntake'),
-    },
-    {
-      icon: 'pill',
-      iconColor: colors.logMedication,
-      iconBg: logBackgrounds.medication,
-      value: `${dailySummary?.medicationsTaken ?? 0}`,
-      label: t('medication.taken'),
-    },
-    {
-      icon: 'food-apple',
-      iconColor: colors.logMeal,
-      iconBg: logBackgrounds.meal,
-      value: `${dailySummary?.mealCount ?? 0}`,
-      label: t('careLog.meal'),
-    },
-  ];
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -169,41 +152,47 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. Greeting Section */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greetingTime}>
-            {greeting.text} {greeting.emoji}
-          </Text>
-          <Text style={styles.greetingName}>
-            {user?.displayName || t('common.appName')}
-          </Text>
-          {activeRecipient && (
-            <Text style={styles.caringFor}>
-              {t('home.caringFor', { name: activeRecipient.name })}
-            </Text>
-          )}
-        </View>
+        {/* ── 1. Hero Section ── */}
+        <LinearGradient
+          colors={['#0D9488', '#0A7B71']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.hero}
+        >
+          <View style={styles.heroContent}>
+            {/* Left side — greeting & info */}
+            <View style={styles.heroLeft}>
+              <Text style={styles.heroGreeting}>
+                {greeting.text} {greeting.emoji}
+              </Text>
+              <Text style={styles.heroName}>
+                {user?.displayName || t('common.appName')}
+              </Text>
+              {activeRecipient && (
+                <Text style={styles.heroCaringFor}>
+                  Caring for {activeRecipient.name} {'\uD83D\uDC9A'}
+                </Text>
+              )}
+            </View>
 
-        {/* 2. Care Completion Ring */}
-        {dailySummary && (
-          <View style={styles.ringCard}>
-            <View style={styles.ringContainer}>
+            {/* Right side — progress ring */}
+            <View style={styles.heroRight}>
               <Svg width={RING_SIZE} height={RING_SIZE}>
                 {/* Track */}
                 <Circle
                   cx={RING_SIZE / 2}
                   cy={RING_SIZE / 2}
                   r={RING_RADIUS}
-                  stroke={colors.surfaceSecondary}
+                  stroke="rgba(255,255,255,0.15)"
                   strokeWidth={RING_STROKE}
                   fill="none"
                 />
-                {/* Progress */}
+                {/* Progress arc */}
                 <Circle
                   cx={RING_SIZE / 2}
                   cy={RING_SIZE / 2}
                   r={RING_RADIUS}
-                  stroke={colors.primary}
+                  stroke="#FFFFFF"
                   strokeWidth={RING_STROKE}
                   strokeLinecap="round"
                   fill="none"
@@ -215,35 +204,79 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
               </Svg>
               <View style={styles.ringTextContainer}>
                 <Text style={styles.ringCount}>{totalLogs}</Text>
-                <Text style={styles.ringLabel}>logs today</Text>
+                <Text style={styles.ringLabel}>today</Text>
               </View>
             </View>
           </View>
-        )}
+        </LinearGradient>
 
-        {/* 3. Quick Stats — Horizontal ScrollView */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={STAT_CARD_WIDTH + STAT_CARD_GAP}
-          decelerationRate="fast"
-          contentContainerStyle={styles.statsRow}
-          style={styles.statsScroll}
-        >
-          {statCards.map((card) => (
-            <StatCard key={card.icon} {...card} />
-          ))}
-        </ScrollView>
+        {/* ── 2. Quick Actions Row ── */}
+        <View style={styles.quickActionsRow}>
+          <QuickActionPill
+            emoji="\uD83D\uDEBD"
+            label="Bowel"
+            onPress={() => setQuickLogType('bowel')}
+          />
+          <QuickActionPill
+            emoji="\uD83D\uDCA7"
+            label="Fluid"
+            onPress={() => setQuickLogType('urination')}
+          />
+          <QuickActionPill
+            emoji="\uD83D\uDC8A"
+            label="Meds"
+            onPress={() => setQuickLogType('medication')}
+          />
+          <QuickActionPill
+            emoji="\uD83C\uDF7D"
+            label="Meal"
+            onPress={() => setQuickLogType('meal')}
+          />
+        </View>
 
-        {/* 4. Timeline Section */}
+        {/* ── 3. Stats Grid (Bento) ── */}
+        <View style={styles.statsGrid}>
+          {/* Top row */}
+          <View style={styles.statsRow}>
+            <StatCard
+              emoji="\uD83D\uDEBF"
+              bgColor="#FEF3C7"
+              value={`${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`}
+              label={t('insights.bathroomVisits')}
+            />
+            <StatCard
+              emoji="\uD83D\uDCA7"
+              bgColor="#DBEAFE"
+              value={`${dailySummary?.fluidTotalMl ?? 0}ml`}
+              label={t('insights.fluidIntake')}
+            />
+          </View>
+          {/* Bottom row */}
+          <View style={styles.statsRow}>
+            <StatCard
+              emoji="\uD83D\uDC8A"
+              bgColor="#F3E8FF"
+              value={`${dailySummary?.medicationsTaken ?? 0}`}
+              label={t('medication.taken')}
+            />
+            <StatCard
+              emoji="\uD83C\uDF4E"
+              bgColor="#DCFCE7"
+              value={`${dailySummary?.mealCount ?? 0}`}
+              label={t('careLog.meal')}
+            />
+          </View>
+        </View>
+
+        {/* ── 4. Timeline ── */}
         <View style={styles.timelineSection}>
           <View style={styles.timelineHeader}>
-            <Text style={styles.sectionTitle}>{t('home.timeline')}</Text>
+            <Text style={styles.sectionTitle}>Recent Activity</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Log')}
               activeOpacity={0.7}
             >
-              <Text style={styles.seeAllLink}>{t('common.seeAll')}</Text>
+              <Text style={styles.seeAllLink}>See all \u2192</Text>
             </TouchableOpacity>
           </View>
           {logs.length > 0 ? (
@@ -268,7 +301,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         </View>
       </ScrollView>
 
-      {/* 5. FAB */}
+      {/* ── 5. FAB ── */}
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate('Log')}
@@ -299,49 +332,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFB',
   },
   scrollContent: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
     paddingBottom: 100,
   },
 
-  /* 1. Greeting */
-  greetingSection: {
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.xs,
+  /* ── 1. Hero ── */
+  hero: {
+    marginHorizontal: 16,
+    marginTop: spacing.md,
+    borderRadius: 28,
+    padding: 24,
   },
-  greetingTime: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#64748B',
-    marginBottom: 4,
+  heroContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  greetingName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1E293B',
-    letterSpacing: -0.5,
+  heroLeft: {
+    flex: 1,
+    marginRight: 16,
   },
-  caringFor: {
+  heroGreeting: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#64748B',
-    marginTop: 4,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 6,
   },
-
-  /* 2. Completion Ring Card */
-  ringCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 12,
-    shadowOpacity: 0.08,
-    elevation: 3,
+  heroName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
-  ringContainer: {
+  heroCaringFor: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.6)',
+  },
+  heroRight: {
     width: RING_SIZE,
     height: RING_SIZE,
     alignItems: 'center',
@@ -353,55 +381,79 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ringCount: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '700',
-    color: '#1E293B',
-    letterSpacing: -1.0,
+    color: '#FFFFFF',
+    letterSpacing: -1,
   },
   ringLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '400',
-    color: '#64748B',
-    marginTop: 2,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 1,
   },
 
-  /* 3. Quick Stats */
-  statsScroll: {
-    marginBottom: spacing.lg,
-    marginHorizontal: -spacing.md,
+  /* ── 2. Quick Actions ── */
+  quickActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: GRID_PADDING,
+    marginTop: 20,
+    gap: 10,
+  },
+  quickPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: borderRadius.full,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  quickPillEmoji: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  quickPillLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textPrimary,
+  },
+
+  /* ── 3. Stats Grid ── */
+  statsGrid: {
+    marginHorizontal: GRID_PADDING,
+    marginTop: 20,
+    gap: CARD_GAP,
   },
   statsRow: {
-    paddingHorizontal: spacing.md,
-    gap: STAT_CARD_GAP,
+    flexDirection: 'row',
+    gap: CARD_GAP,
   },
   statCard: {
-    width: STAT_CARD_WIDTH,
-    height: STAT_CARD_HEIGHT,
-    backgroundColor: '#FFFFFF',
+    flex: 1,
+    height: 110,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 12,
-    shadowOpacity: 0.08,
-    elevation: 3,
+    ...shadows.md,
   },
   statCardInner: {
     flex: 1,
+    borderRadius: 20,
     padding: 16,
     justifyContent: 'space-between',
+    overflow: 'hidden',
   },
-  statIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+  statEmoji: {
+    fontSize: 28,
   },
   statBottom: {
     marginTop: 'auto',
   },
   statValue: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
     color: '#1E293B',
     letterSpacing: -0.5,
@@ -413,8 +465,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  /* 4. Timeline */
+  /* ── 4. Timeline ── */
   timelineSection: {
+    marginTop: 24,
+    marginHorizontal: GRID_PADDING,
     marginBottom: spacing.lg,
   },
   timelineHeader: {
@@ -422,7 +476,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
-    paddingHorizontal: spacing.xs,
   },
   sectionTitle: {
     fontSize: 18,
@@ -460,7 +513,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  /* 5. FAB */
+  /* ── 5. FAB ── */
   fab: {
     position: 'absolute',
     right: 20,
@@ -471,10 +524,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 16,
-    shadowOpacity: 0.08,
-    elevation: 4,
+    ...shadows.lg,
   },
 });
