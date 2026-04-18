@@ -6,15 +6,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Chip, Avatar, IconButton } from 'react-native-paper';
+import { Text, TextInput, Chip } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { recipientService } from '../../../services/recipient.service';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
-import { GradientCard, GradientButton } from '../../../components/ui/GradientCard';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
 const COMMON_CONDITIONS = [
@@ -91,38 +91,40 @@ export function CareRecipientProfileScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
+        {/* Dark emerald header */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
+          <TouchableOpacity
             onPress={() => navigation.goBack()}
-          />
+            style={styles.backButton}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('recipient.title')}</Text>
           <View style={{ width: 48 }} />
         </View>
 
         <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Avatar section wrapped in GradientCard */}
-          <GradientCard style={styles.avatarCard}>
-            <View style={styles.avatarContainer}>
-              <Avatar.Text
-                size={80}
-                label={name.charAt(0) || '?'}
-                style={{ backgroundColor: '#FFFFFF' }}
-                color={colors.primary}
-              />
-              <Text style={styles.avatarName}>{name || '?'}</Text>
+          {/* Avatar card */}
+          <View style={styles.avatarCard}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitial}>
+                {name.charAt(0).toUpperCase() || '?'}
+              </Text>
             </View>
-          </GradientCard>
+            <Text style={styles.avatarName}>{name || '?'}</Text>
+          </View>
 
+          {/* Form */}
           <View style={styles.form}>
             <TextInput
               label={t('recipient.name')}
@@ -130,8 +132,9 @@ export function CareRecipientProfileScreen({
               onChangeText={setName}
               mode="outlined"
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#CBD5E1"
+              activeOutlineColor="#064E3B"
+              theme={{ colors: { primary: '#064E3B' } }}
             />
 
             <Text style={styles.fieldLabel}>{t('recipient.gender')}</Text>
@@ -141,11 +144,13 @@ export function CareRecipientProfileScreen({
                 onPress={() => setGender('male')}
                 style={[
                   styles.chip,
-                  gender === 'male' && {
-                    backgroundColor: colors.primary,
-                  },
+                  gender === 'male' && styles.chipSelected,
                 ]}
-                textStyle={gender === 'male' ? { color: '#FFFFFF' } : undefined}
+                textStyle={[
+                  styles.chipText,
+                  gender === 'male' && styles.chipTextSelected,
+                ]}
+                showSelectedOverlay={false}
               >
                 {t('recipient.male')}
               </Chip>
@@ -154,11 +159,13 @@ export function CareRecipientProfileScreen({
                 onPress={() => setGender('female')}
                 style={[
                   styles.chip,
-                  gender === 'female' && {
-                    backgroundColor: colors.primary,
-                  },
+                  gender === 'female' && styles.chipSelected,
                 ]}
-                textStyle={gender === 'female' ? { color: '#FFFFFF' } : undefined}
+                textStyle={[
+                  styles.chipText,
+                  gender === 'female' && styles.chipTextSelected,
+                ]}
+                showSelectedOverlay={false}
               >
                 {t('recipient.female')}
               </Chip>
@@ -171,8 +178,9 @@ export function CareRecipientProfileScreen({
               mode="outlined"
               placeholder="1945-01-01"
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#CBD5E1"
+              activeOutlineColor="#064E3B"
+              theme={{ colors: { primary: '#064E3B' } }}
             />
 
             <Text style={styles.fieldLabel}>
@@ -188,11 +196,13 @@ export function CareRecipientProfileScreen({
                     onPress={() => toggleCondition(c)}
                     style={[
                       styles.chip,
-                      isSelected && {
-                        backgroundColor: colors.secondary,
-                      },
+                      isSelected && styles.chipSelected,
                     ]}
-                    textStyle={isSelected ? { color: '#FFFFFF' } : undefined}
+                    textStyle={[
+                      styles.chipText,
+                      isSelected && styles.chipTextSelected,
+                    ]}
+                    showSelectedOverlay={false}
                   >
                     {c}
                   </Chip>
@@ -207,8 +217,9 @@ export function CareRecipientProfileScreen({
               mode="outlined"
               placeholder="Peanuts, Penicillin..."
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#CBD5E1"
+              activeOutlineColor="#064E3B"
+              theme={{ colors: { primary: '#064E3B' } }}
             />
 
             <TextInput
@@ -219,17 +230,26 @@ export function CareRecipientProfileScreen({
               multiline
               numberOfLines={4}
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#CBD5E1"
+              activeOutlineColor="#064E3B"
+              theme={{ colors: { primary: '#064E3B' } }}
             />
 
-            <GradientButton
-              label={t('common.save')}
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                (isLoading || !name) && styles.saveButtonDisabled,
+              ]}
               onPress={handleSave}
-              loading={isLoading}
               disabled={isLoading || !name}
-              style={styles.saveButton}
-            />
+              activeOpacity={0.8}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -240,7 +260,7 @@ export function CareRecipientProfileScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#064E3B',
   },
   flex: {
     flex: 1,
@@ -249,53 +269,110 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#064E3B',
+  },
+  backButton: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   headerTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  content: {
-    padding: spacing.lg,
-  },
-  avatarCard: {
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  avatarName: {
-    ...typography.h3,
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  avatarCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  avatarCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#064E3B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  avatarInitial: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  avatarName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
   form: {
-    gap: spacing.md,
+    gap: 14,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
   },
   fieldLabel: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
-    marginTop: spacing.sm,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginTop: 4,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   chip: {
-    marginBottom: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    marginBottom: 4,
+  },
+  chipSelected: {
+    backgroundColor: '#064E3B',
+    borderColor: '#064E3B',
+  },
+  chipText: {
+    color: '#64748B',
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
   },
   saveButton: {
-    marginTop: spacing.lg,
-    borderRadius: borderRadius.xl,
+    backgroundColor: '#064E3B',
+    borderRadius: 24,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

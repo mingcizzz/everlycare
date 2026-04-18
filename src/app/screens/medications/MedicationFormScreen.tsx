@@ -6,14 +6,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Button, Chip, IconButton } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { medicationService } from '../../../services/medication.service';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
-import { GradientButton } from '../../../components/ui/GradientCard';
 import type { Medication } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
@@ -108,100 +110,116 @@ export function MedicationFormScreen({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+        style={{ flex: 1 }}
       >
+        {/* Dark compact header */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={() => navigation.goBack()}
-          />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('medication.title')}</Text>
-          <View style={{ width: 48 }} />
+          <View style={{ width: 40 }} />
         </View>
 
         <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <TextInput
-            label={t('medication.name')}
-            value={name}
-            onChangeText={setName}
-            mode="outlined"
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-          />
-
-          <TextInput
-            label={t('medication.dosage')}
-            value={dosage}
-            onChangeText={setDosage}
-            mode="outlined"
-            placeholder="e.g. 10mg, 1 tablet"
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-          />
-
-          <Text style={styles.fieldLabel}>Frequency</Text>
-          <View style={styles.chipRow}>
-            {FREQUENCIES.map((f) => (
-              <Chip
-                key={f}
-                selected={frequency === f}
-                onPress={() => setFrequency(f)}
-                style={styles.chip}
-              >
-                {FREQUENCY_LABELS[f]}
-              </Chip>
-            ))}
+          {/* Name input */}
+          <Text style={styles.fieldLabel}>{t('medication.name')}</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder={t('medication.name')}
+              placeholderTextColor="#94A3B8"
+              style={styles.textInput}
+            />
           </View>
 
+          {/* Dosage input */}
+          <Text style={styles.fieldLabel}>{t('medication.dosage')}</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={dosage}
+              onChangeText={setDosage}
+              placeholder="e.g. 10mg, 1 tablet"
+              placeholderTextColor="#94A3B8"
+              style={styles.textInput}
+            />
+          </View>
+
+          {/* Frequency chips */}
+          <Text style={styles.fieldLabel}>Frequency</Text>
+          <View style={styles.chipRow}>
+            {FREQUENCIES.map((f) => {
+              const selected = frequency === f;
+              return (
+                <TouchableOpacity
+                  key={f}
+                  onPress={() => setFrequency(f)}
+                  style={[styles.chip, selected && styles.chipSelected]}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    {FREQUENCY_LABELS[f]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Scheduled times */}
           <Text style={styles.fieldLabel}>Scheduled Times</Text>
           <View style={styles.chipRow}>
             {times.map((time) => (
-              <Chip
-                key={time}
-                onClose={() => removeTime(time)}
-                style={styles.chip}
-              >
-                {time}
-              </Chip>
+              <View key={time} style={styles.timeChip}>
+                <Text style={styles.timeChipText}>{time}</Text>
+                <TouchableOpacity onPress={() => removeTime(time)}>
+                  <MaterialCommunityIcons name="close-circle" size={18} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
 
           <View style={styles.timeInputRow}>
-            <TextInput
-              label="HH:MM"
-              value={newTime}
-              onChangeText={setNewTime}
-              mode="outlined"
-              placeholder="08:00"
-              style={[styles.input, { flex: 1 }]}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
-            />
-            <Button
-              mode="contained-tonal"
-              onPress={addTime}
-              style={styles.addTimeButton}
-            >
-              {t('common.add')}
-            </Button>
+            <View style={[styles.inputContainer, { flex: 1 }]}>
+              <TextInput
+                value={newTime}
+                onChangeText={setNewTime}
+                placeholder="08:00"
+                placeholderTextColor="#94A3B8"
+                style={styles.textInput}
+              />
+            </View>
+            <TouchableOpacity onPress={addTime} style={styles.addTimeBtn} activeOpacity={0.7}>
+              <Text style={styles.addTimeBtnText}>{t('common.add')}</Text>
+            </TouchableOpacity>
           </View>
 
-          <GradientButton
-            label={t('common.save')}
+          {/* Solid save button */}
+          <TouchableOpacity
             onPress={handleSave}
-            loading={isLoading}
             disabled={isLoading || !name.trim()}
-            style={styles.gradientButton}
-          />
+            activeOpacity={0.8}
+            style={[
+              styles.button,
+              (isLoading || !name.trim()) && styles.buttonDisabled,
+            ]}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="content-save" size={20} color="#FFFFFF" />
+                <Text style={styles.buttonText}>{t('common.save')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -209,55 +227,133 @@ export function MedicationFormScreen({
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
+    backgroundColor: '#064E3B',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.background,
-    ...shadows.sm,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#064E3B',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
   },
   content: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    padding: 20,
+    gap: 14,
+    paddingBottom: 40,
   },
   fieldLabel: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
   },
-  input: {
-    backgroundColor: colors.surface,
+  inputContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  textInput: {
+    fontSize: 15,
+    color: '#1E293B',
+    height: 48,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   chip: {
-    marginBottom: spacing.xs,
-    borderRadius: borderRadius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chipSelected: {
+    backgroundColor: '#064E3B',
+    borderColor: '#064E3B',
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
+  },
+  timeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingLeft: 14,
+    paddingRight: 8,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  timeChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1E293B',
   },
   timeInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 10,
   },
-  addTimeButton: {
-    borderRadius: borderRadius.md,
+  addTimeBtn: {
+    backgroundColor: '#064E3B',
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  gradientButton: {
-    marginTop: spacing.lg,
+  addTimeBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  button: {
+    backgroundColor: '#064E3B',
+    borderRadius: 24,
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

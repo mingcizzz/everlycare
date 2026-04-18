@@ -3,7 +3,6 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius, shadows } from '../../theme';
 import { LOG_TYPE_CONFIG, type CareLog } from '../../types/careLog';
 import { formatTime } from '../../utils/date';
 
@@ -40,10 +39,10 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
       {/* Card */}
       <View style={[styles.card, { borderLeftColor: config.color }]}>
         <View style={styles.headerRow}>
-          <View style={[styles.iconBg, { backgroundColor: config.color + '18' }]}>
+          <View style={[styles.iconBg, { backgroundColor: config.color + '1F' }]}>
             <MaterialCommunityIcons
               name={config.icon as any}
-              size={14}
+              size={24}
               color={config.color}
             />
           </View>
@@ -101,62 +100,65 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: spacing.sm,
+    marginBottom: 10,
   },
   timeColumn: {
     width: 52,
     alignItems: 'flex-end',
-    paddingTop: spacing.sm,
-    marginRight: spacing.sm,
+    paddingTop: 10,
+    marginRight: 10,
   },
   timeText: {
-    ...typography.caption,
-    color: colors.textTertiary,
+    fontSize: 12,
     fontWeight: '500',
+    color: '#94A3B8',
   },
   dateText: {
-    ...typography.caption,
-    color: colors.textTertiary,
     fontSize: 10,
+    color: '#94A3B8',
     marginTop: 1,
   },
   card: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.sm,
-    paddingLeft: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    paddingLeft: 14,
     borderLeftWidth: 3,
-    ...shadows.sm,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 10,
   },
   iconBg: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   label: {
-    ...typography.bodySmall,
-    color: colors.textPrimary,
+    fontSize: 15,
     fontWeight: '600',
+    color: '#1E293B',
   },
   summary: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-    marginLeft: 36,
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 6,
+    marginLeft: 42,
   },
   notes: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    marginTop: 2,
-    marginLeft: 36,
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 3,
+    marginLeft: 42,
     fontStyle: 'italic',
   },
 });

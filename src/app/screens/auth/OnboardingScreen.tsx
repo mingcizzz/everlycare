@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { spacing, typography } from '../../../theme';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -83,7 +83,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               <MaterialCommunityIcons
                 name="account-heart"
                 size={48}
-                color={colors.textOnPrimary}
+                color="#FFFFFF"
               />
             </View>
           </View>
@@ -92,16 +92,16 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
           <Text style={styles.title}>{t('recipient.addNew')}</Text>
           <Text style={styles.subtitle}>{t('onboarding.trackDesc')}</Text>
 
-          {/* Form */}
-          <View style={styles.form}>
+          {/* Form card */}
+          <View style={styles.card}>
             <TextInput
               label={t('recipient.name')}
               value={name}
               onChangeText={setName}
               mode="outlined"
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#E2E8F0"
+              activeOutlineColor="#059669"
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="account-outline" />}
             />
@@ -120,7 +120,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <MaterialCommunityIcons
                   name="gender-male"
                   size={18}
-                  color={gender === 'male' ? colors.textOnPrimary : colors.textSecondary}
+                  color={gender === 'male' ? '#FFFFFF' : '#64748B'}
                   style={styles.chipIcon}
                 />
                 <Text
@@ -144,7 +144,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 <MaterialCommunityIcons
                   name="gender-female"
                   size={18}
-                  color={gender === 'female' ? colors.textOnPrimary : colors.textSecondary}
+                  color={gender === 'female' ? '#FFFFFF' : '#64748B'}
                   style={styles.chipIcon}
                 />
                 <Text
@@ -165,8 +165,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               mode="outlined"
               placeholder="1945-01-01"
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#E2E8F0"
+              activeOutlineColor="#059669"
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="calendar-outline" />}
             />
@@ -204,8 +204,8 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
               multiline
               numberOfLines={3}
               style={styles.input}
-              outlineColor={colors.border}
-              activeOutlineColor={colors.primary}
+              outlineColor="#E2E8F0"
+              activeOutlineColor="#059669"
               outlineStyle={styles.inputOutline}
               left={<TextInput.Icon icon="note-text-outline" />}
             />
@@ -222,7 +222,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
             >
               <View style={styles.submitButtonInner}>
                 {isLoading ? (
-                  <ActivityIndicator color={colors.textOnPrimary} size="small" />
+                  <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <Text style={styles.submitButtonText}>
                     {t('onboarding.getStarted')}
@@ -240,7 +240,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F1F5F9',
   },
   flex: {
     flex: 1,
@@ -258,34 +258,43 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.primary,
+    backgroundColor: '#064E3B',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    ...typography.h2,
-    color: colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
     textAlign: 'center',
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: '#64748B',
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
   },
-  form: {
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: spacing.lg,
     gap: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
   },
   inputOutline: {
-    borderRadius: borderRadius.md,
+    borderRadius: 12,
   },
   fieldLabel: {
     ...typography.subtitle,
-    color: colors.textPrimary,
+    color: '#1E293B',
     marginTop: spacing.xs,
   },
   chipRow: {
@@ -298,29 +307,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.surface,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
   },
   chipSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#064E3B',
+    borderColor: '#064E3B',
   },
   chipIcon: {
     marginRight: spacing.xs,
   },
   chipText: {
     ...typography.bodySmall,
-    color: colors.textSecondary,
+    color: '#64748B',
   },
   chipTextSelected: {
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.xl,
+    backgroundColor: '#064E3B',
+    borderRadius: 24,
     height: 52,
     justifyContent: 'center',
     alignItems: 'center',
@@ -336,6 +345,6 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     ...typography.subtitle,
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
   },
 });

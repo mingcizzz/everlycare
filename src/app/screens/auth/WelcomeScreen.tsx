@@ -11,7 +11,7 @@ import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import { spacing, typography } from '../../../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -71,7 +71,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
         <MaterialCommunityIcons
           name={item.icon as any}
           size={64}
-          color={colors.primary}
+          color="#059669"
         />
       </View>
       <Text style={styles.slideTitle}>{t(item.titleKey)}</Text>
@@ -116,7 +116,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           });
           const dotColor = scrollX.interpolate({
             inputRange,
-            outputRange: [colors.borderLight, colors.primary, colors.borderLight],
+            outputRange: ['#E2E8F0', '#059669', '#E2E8F0'],
             extrapolate: 'clamp',
           });
           return (
@@ -156,7 +156,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             <MaterialCommunityIcons
               name="arrow-right"
               size={20}
-              color={colors.textOnPrimary}
+              color="#FFFFFF"
               style={styles.nextIcon}
             />
           )}
@@ -169,7 +169,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F1F5F9',
   },
   slide: {
     width: SCREEN_WIDTH,
@@ -182,20 +182,20 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: '#E6F7F5',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
   slideTitle: {
     ...typography.h2,
-    color: colors.textPrimary,
+    color: '#1E293B',
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   slideDesc: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: spacing.md,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: '#64748B',
   },
   skipPlaceholder: {
     width: 40,
@@ -229,15 +229,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.xl,
+    backgroundColor: '#064E3B',
+    borderRadius: 24,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    height: 52,
     minWidth: 140,
   },
   nextButtonText: {
     ...typography.subtitle,
-    color: colors.textOnPrimary,
+    color: '#FFFFFF',
   },
   nextIcon: {
     marginLeft: spacing.xs,

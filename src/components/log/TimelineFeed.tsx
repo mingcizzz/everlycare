@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Card } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { colors, spacing, typography, borderRadius } from '../../theme';
 import type { CareLog } from '../../types/careLog';
 import { LogEntryCard } from './LogEntryCard';
 
@@ -24,17 +23,15 @@ export function TimelineFeed({
 
   if (logs.length === 0) {
     return (
-      <Card style={styles.emptyCard}>
-        <Card.Content style={styles.emptyContent}>
-          <MaterialCommunityIcons
-            name="notebook-outline"
-            size={80}
-            color={colors.textTertiary}
-          />
-          <Text style={styles.emptyText}>{t('home.noLogsToday')}</Text>
-          <Text style={styles.emptySubtext}>{t('home.addFirstLog')}</Text>
-        </Card.Content>
-      </Card>
+      <View style={styles.emptyContainer}>
+        <MaterialCommunityIcons
+          name="notebook-outline"
+          size={48}
+          color="#CBD5E1"
+        />
+        <Text style={styles.emptyText}>{t('home.noLogsToday')}</Text>
+        <Text style={styles.emptySubtext}>{t('home.addFirstLog')}</Text>
+      </View>
     );
   }
 
@@ -54,22 +51,19 @@ export function TimelineFeed({
 }
 
 const styles = StyleSheet.create({
-  emptyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-  },
-  emptyContent: {
+  emptyContainer: {
     alignItems: 'center',
-    padding: spacing.xl,
+    justifyContent: 'center',
+    paddingVertical: 48,
   },
   emptyText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
+    fontSize: 15,
+    color: '#94A3B8',
+    marginTop: 16,
   },
   emptySubtext: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 6,
   },
 });

@@ -6,15 +6,16 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Chip, IconButton, Card } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { careTeamService } from '../../../services/careteam.service';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
-import { GradientButton } from '../../../components/ui/GradientCard';
 import type { CareTeamMember } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
@@ -52,71 +53,82 @@ export function InviteMemberScreen({ navigation }: RootStackScreenProps<'InviteM
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+        style={{ flex: 1 }}
       >
+        {/* Dark compact header */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={() => navigation.goBack()}
-          />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('careTeam.inviteMember')}</Text>
-          <View style={{ width: 48 }} />
+          <View style={{ width: 40 }} />
         </View>
 
         <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <Card style={styles.infoCard}>
-            <Card.Content style={styles.infoContent}>
-              <MaterialCommunityIcons
-                name="information-outline"
-                size={20}
-                color={colors.info}
-              />
-              <Text style={styles.infoText}>
-                Ask your family member to create an EverlyCare account first, then
-                share their User ID from their profile screen.
-              </Text>
-            </Card.Content>
-          </Card>
-
-          <TextInput
-            label="User ID"
-            value={userId}
-            onChangeText={setUserId}
-            mode="outlined"
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.fieldLabel}>Role</Text>
-          <View style={styles.chipRow}>
-            {roles.map(({ key, icon }) => (
-              <Chip
-                key={key}
-                selected={role === key}
-                onPress={() => setRole(key)}
-                style={styles.chip}
-                icon={icon}
-              >
-                {t(`careTeam.${key}`)}
-              </Chip>
-            ))}
+          {/* Info card with emerald left border */}
+          <View style={styles.infoCard}>
+            <MaterialCommunityIcons
+              name="information-outline"
+              size={20}
+              color="#059669"
+            />
+            <Text style={styles.infoText}>
+              Ask your family member to create an EverlyCare account first, then
+              share their User ID from their profile screen.
+            </Text>
           </View>
 
+          {/* User ID input */}
+          <Text style={styles.fieldLabel}>User ID</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={userId}
+              onChangeText={setUserId}
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              placeholderTextColor="#94A3B8"
+              style={styles.textInput}
+              autoCapitalize="none"
+            />
+          </View>
+
+          {/* Role chips */}
+          <Text style={styles.fieldLabel}>Role</Text>
+          <View style={styles.chipRow}>
+            {roles.map(({ key, icon }) => {
+              const selected = role === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => setRole(key)}
+                  style={[styles.chip, selected && styles.chipSelected]}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons
+                    name={icon as any}
+                    size={16}
+                    color={selected ? '#FFFFFF' : '#64748B'}
+                  />
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    {t(`careTeam.${key}`)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Role description */}
           <View style={styles.roleDescription}>
             <MaterialCommunityIcons
               name={role === 'member' ? 'pencil' : 'eye'}
               size={18}
-              color={colors.textSecondary}
+              color="#64748B"
             />
             <Text style={styles.roleDescriptionText}>
               {role === 'member'
@@ -125,14 +137,25 @@ export function InviteMemberScreen({ navigation }: RootStackScreenProps<'InviteM
             </Text>
           </View>
 
-          <GradientButton
-            label={t('careTeam.inviteMember')}
+          {/* Solid invite button */}
+          <TouchableOpacity
             onPress={handleInvite}
-            icon="account-plus"
-            loading={isLoading}
             disabled={isLoading || !userId.trim()}
-            style={styles.gradientButton}
-          />
+            activeOpacity={0.8}
+            style={[
+              styles.button,
+              (isLoading || !userId.trim()) && styles.buttonDisabled,
+            ]}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="account-plus" size={20} color="#FFFFFF" />
+                <Text style={styles.buttonText}>{t('careTeam.inviteMember')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -140,76 +163,131 @@ export function InviteMemberScreen({ navigation }: RootStackScreenProps<'InviteM
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
+    backgroundColor: '#064E3B',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.background,
-    ...shadows.sm,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#064E3B',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
   },
   content: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    padding: 20,
+    gap: 16,
+    paddingBottom: 40,
   },
   infoCard: {
-    backgroundColor: colors.info + '10',
-    borderRadius: borderRadius.md,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.info,
-  },
-  infoContent: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 12,
     alignItems: 'flex-start',
+    borderLeftWidth: 4,
+    borderLeftColor: '#059669',
   },
   infoText: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: '#64748B',
     flex: 1,
-  },
-  input: {
-    backgroundColor: colors.surface,
+    lineHeight: 20,
   },
   fieldLabel: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
+  inputContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  textInput: {
+    fontSize: 15,
+    color: '#1E293B',
+    height: 48,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 10,
   },
   chip: {
-    marginBottom: spacing.xs,
-    borderRadius: borderRadius.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chipSelected: {
+    backgroundColor: '#064E3B',
+    borderColor: '#064E3B',
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  chipTextSelected: {
+    color: '#FFFFFF',
   },
   roleDescription: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 10,
     alignItems: 'flex-start',
-    padding: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: borderRadius.md,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
   },
   roleDescriptionText: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: '#64748B',
     flex: 1,
+    lineHeight: 20,
   },
-  gradientButton: {
-    marginTop: spacing.lg,
+  button: {
+    backgroundColor: '#064E3B',
+    borderRadius: 24,
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

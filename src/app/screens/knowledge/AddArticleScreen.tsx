@@ -6,14 +6,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, TextInput, Chip, IconButton } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { knowledgeService } from '../../../services/knowledge.service';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
-import { GradientButton } from '../../../components/ui/GradientCard';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
 const CATEGORIES = [
@@ -66,108 +67,123 @@ export function AddArticleScreen({ navigation }: RootStackScreenProps<'AddArticl
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+        style={{ flex: 1 }}
       >
+        {/* Dark compact header */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={() => navigation.goBack()}
-          />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('knowledge.addTip')}</Text>
-          <View style={{ width: 48 }} />
+          <View style={{ width: 40 }} />
         </View>
 
         <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Category */}
+          {/* Category chips */}
           <Text style={styles.fieldLabel}>{t('knowledge.categories')}</Text>
           <View style={styles.chipRow}>
             {CATEGORIES.map((cat) => {
               const isActive = category === cat.key;
               return (
-                <Chip
+                <TouchableOpacity
                   key={cat.key}
-                  selected={isActive}
                   onPress={() => setCategory(cat.key)}
                   style={[
                     styles.chip,
-                    isActive && { backgroundColor: cat.color },
+                    isActive && { backgroundColor: '#064E3B', borderColor: '#064E3B' },
                   ]}
-                  textStyle={isActive ? { color: '#FFFFFF' } : undefined}
-                  icon={() => (
-                    <MaterialCommunityIcons
-                      name={cat.icon as any}
-                      size={16}
-                      color={isActive ? '#FFFFFF' : cat.color}
-                    />
-                  )}
+                  activeOpacity={0.7}
                 >
-                  {t(CATEGORY_LABELS[cat.key])}
-                </Chip>
+                  <MaterialCommunityIcons
+                    name={cat.icon as any}
+                    size={15}
+                    color={isActive ? '#FFFFFF' : cat.color}
+                  />
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isActive && { color: '#FFFFFF' },
+                    ]}
+                  >
+                    {t(CATEGORY_LABELS[cat.key])}
+                  </Text>
+                </TouchableOpacity>
               );
             })}
           </View>
 
           {/* Chinese title + content */}
           <Text style={styles.sectionLabel}>Chinese</Text>
-          <TextInput
-            label={`${t('knowledge.title')} (中文) *`}
-            value={titleZh}
-            onChangeText={setTitleZh}
-            mode="outlined"
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-          />
-          <TextInput
-            label={`Content (中文) *`}
-            value={contentZh}
-            onChangeText={setContentZh}
-            mode="outlined"
-            multiline
-            numberOfLines={6}
-            style={[styles.input, styles.textArea]}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={titleZh}
+              onChangeText={setTitleZh}
+              placeholder={`${t('knowledge.title')} (中文) *`}
+              placeholderTextColor="#94A3B8"
+              style={styles.textInput}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={contentZh}
+              onChangeText={setContentZh}
+              placeholder="Content (中文) *"
+              placeholderTextColor="#94A3B8"
+              style={[styles.textInput, styles.textArea]}
+              multiline
+              textAlignVertical="top"
+            />
+          </View>
 
           {/* English title + content (optional) */}
           <Text style={styles.sectionLabel}>English (optional)</Text>
-          <TextInput
-            label="Title (English)"
-            value={titleEn}
-            onChangeText={setTitleEn}
-            mode="outlined"
-            style={styles.input}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-          />
-          <TextInput
-            label="Content (English)"
-            value={contentEn}
-            onChangeText={setContentEn}
-            mode="outlined"
-            multiline
-            numberOfLines={6}
-            style={[styles.input, styles.textArea]}
-            outlineColor={colors.border}
-            activeOutlineColor={colors.primary}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={titleEn}
+              onChangeText={setTitleEn}
+              placeholder="Title (English)"
+              placeholderTextColor="#94A3B8"
+              style={styles.textInput}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={contentEn}
+              onChangeText={setContentEn}
+              placeholder="Content (English)"
+              placeholderTextColor="#94A3B8"
+              style={[styles.textInput, styles.textArea]}
+              multiline
+              textAlignVertical="top"
+            />
+          </View>
 
-          <GradientButton
-            label={t('common.save')}
+          {/* Solid save button */}
+          <TouchableOpacity
             onPress={handleSave}
-            loading={isLoading}
             disabled={isLoading || !titleZh.trim() || !contentZh.trim()}
-            icon="content-save"
-            style={styles.saveButton}
-          />
+            activeOpacity={0.8}
+            style={[
+              styles.button,
+              (isLoading || !titleZh.trim() || !contentZh.trim()) && styles.buttonDisabled,
+            ]}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="content-save" size={20} color="#FFFFFF" />
+                <Text style={styles.buttonText}>{t('common.save')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -175,56 +191,104 @@ export function AddArticleScreen({ navigation }: RootStackScreenProps<'AddArticl
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
+    backgroundColor: '#064E3B',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    ...shadows.sm,
-    backgroundColor: colors.surface,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#064E3B',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
   },
   content: {
-    padding: spacing.lg,
-    gap: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 20,
+    gap: 14,
+    paddingBottom: 40,
   },
   fieldLabel: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
   },
   sectionLabel: {
-    ...typography.subtitle,
-    color: colors.textSecondary,
-    marginTop: spacing.sm,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 4,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   chip: {
-    borderRadius: borderRadius.full,
-    marginBottom: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  input: {
-    backgroundColor: colors.surface,
+  chipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  inputContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+  },
+  textInput: {
+    fontSize: 15,
+    color: '#1E293B',
+    height: 48,
   },
   textArea: {
-    minHeight: 120,
+    height: 120,
+    paddingTop: 12,
   },
-  saveButton: {
-    marginTop: spacing.lg,
+  button: {
+    backgroundColor: '#064E3B',
+    borderRadius: 24,
+    height: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

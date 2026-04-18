@@ -7,8 +7,7 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import { Text, Card, Avatar, IconButton, Chip, Divider } from 'react-native-paper';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Text, Switch } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -18,15 +17,14 @@ import {
   careTeamService,
   type ActivityFeedItem,
 } from '../../../services/careteam.service';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../theme';
 import { LOG_TYPE_CONFIG, type LogType } from '../../../types/careLog';
 import type { CareTeamMember } from '../../../types/recipient';
 import type { RootStackScreenProps } from '../../../types/navigation';
 
 const ROLE_COLORS: Record<string, string> = {
-  primary: colors.primary,
-  member: colors.secondary,
-  viewer: colors.tertiary,
+  primary: '#064E3B',
+  member: '#059669',
+  viewer: '#94A3B8',
 };
 
 export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>) {
@@ -58,7 +56,7 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
   }, [refresh]);
 
   const handleRemove = (member: CareTeamMember) => {
-    if (member.userId === user?.id) return; // can't remove self
+    if (member.userId === user?.id) return;
     Alert.alert(t('common.delete'), member.displayName || '', [
       { text: t('common.cancel'), style: 'cancel' },
       {
@@ -73,18 +71,17 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Dark compact header */}
       <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('careTeam.title')}</Text>
-        <View style={{ width: 48 }} />
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* Tabs */}
+      {/* Tabs inside dark area */}
       <View style={styles.tabRow}>
         <TouchableOpacity
           style={[styles.tab, tab === 'members' && styles.tabActive]}
@@ -92,8 +89,8 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
         >
           <MaterialCommunityIcons
             name="account-group"
-            size={20}
-            color={tab === 'members' ? colors.primary : colors.textSecondary}
+            size={18}
+            color={tab === 'members' ? '#FFFFFF' : 'rgba(255,255,255,0.5)'}
           />
           <Text
             style={[
@@ -110,8 +107,8 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
         >
           <MaterialCommunityIcons
             name="timeline-text"
-            size={20}
-            color={tab === 'activity' ? colors.primary : colors.textSecondary}
+            size={18}
+            color={tab === 'activity' ? '#FFFFFF' : 'rgba(255,255,255,0.5)'}
           />
           <Text
             style={[
@@ -125,6 +122,7 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
       </View>
 
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={refresh} />
@@ -132,127 +130,115 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
       >
         {tab === 'members' ? (
           members.length === 0 ? (
-            <Card style={styles.emptyCard}>
-              <Card.Content style={styles.emptyContent}>
-                <MaterialCommunityIcons
-                  name="account-group-outline"
-                  size={48}
-                  color={colors.textTertiary}
-                />
-                <Text style={styles.emptyText}>{t('common.noData')}</Text>
-              </Card.Content>
-            </Card>
-          ) : (
-            members.map((member) => (
-              <Card key={member.id} style={styles.memberCard}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onLongPress={() => handleRemove(member)}
-                >
-                  <Card.Content style={styles.memberContent}>
-                    <Avatar.Text
-                      size={44}
-                      label={(member.displayName || '?').charAt(0)}
-                      style={{
-                        backgroundColor:
-                          ROLE_COLORS[member.role] || colors.primary,
-                      }}
-                    />
-                    <View style={styles.memberText}>
-                      <Text style={styles.memberName}>
-                        {member.displayName || member.userId.slice(0, 8)}
-                        {member.userId === user?.id ? ' (You)' : ''}
-                      </Text>
-                      <Chip
-                        compact
-                        textStyle={styles.roleChipText}
-                        style={[
-                          styles.roleChip,
-                          {
-                            backgroundColor:
-                              (ROLE_COLORS[member.role] || colors.primary) + '20',
-                          },
-                        ]}
-                      >
-                        {t(`careTeam.${member.role}`)}
-                      </Chip>
-                    </View>
-                    {!member.acceptedAt && (
-                      <Chip compact style={styles.pendingChip}>
-                        {t('careTeam.pending')}
-                      </Chip>
-                    )}
-                  </Card.Content>
-                </TouchableOpacity>
-              </Card>
-            ))
-          )
-        ) : /* Activity feed */
-        feed.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <Card.Content style={styles.emptyContent}>
+            <View style={styles.emptyCard}>
               <MaterialCommunityIcons
-                name="timeline-text-outline"
+                name="account-group-outline"
                 size={48}
-                color={colors.textTertiary}
+                color="#94A3B8"
               />
               <Text style={styles.emptyText}>{t('common.noData')}</Text>
-            </Card.Content>
-          </Card>
-        ) : (
-          feed.map((item) => {
-            const config = LOG_TYPE_CONFIG[item.logType as LogType];
-            const time = new Date(item.occurredAt);
-            return (
-              <View key={item.id} style={styles.feedItem}>
-                <Avatar.Text
-                  size={32}
-                  label={item.loggedByName.charAt(0)}
-                  style={{ backgroundColor: colors.primaryLight }}
-                />
-                <View style={styles.feedContent}>
-                  <View style={styles.feedRow}>
-                    <Text style={styles.feedAuthor}>{item.loggedByName}</Text>
-                    <Text style={styles.feedTime}>
-                      {time.toLocaleDateString()} {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
-                  <View style={styles.feedTypeRow}>
-                    <MaterialCommunityIcons
-                      name={config?.icon as any || 'note-text'}
-                      size={16}
-                      color={config?.color || colors.textSecondary}
-                    />
-                    <Text style={styles.feedType}>
-                      {t(config?.labelKey || 'careLog.note')}
-                    </Text>
-                  </View>
-                  {item.notes && (
-                    <Text style={styles.feedNotes} numberOfLines={2}>
-                      {item.notes}
-                    </Text>
-                  )}
+            </View>
+          ) : (
+            members.map((member) => (
+              <TouchableOpacity
+                key={member.id}
+                activeOpacity={0.7}
+                onLongPress={() => handleRemove(member)}
+                style={styles.memberCard}
+              >
+                <View style={[styles.avatarCircle, { backgroundColor: ROLE_COLORS[member.role] || '#064E3B' }]}>
+                  <Text style={styles.avatarText}>
+                    {(member.displayName || '?').charAt(0).toUpperCase()}
+                  </Text>
                 </View>
-              </View>
-            );
-          })
+                <View style={styles.memberText}>
+                  <Text style={styles.memberName}>
+                    {member.displayName || member.userId.slice(0, 8)}
+                    {member.userId === user?.id ? ' (You)' : ''}
+                  </Text>
+                  <View style={[styles.roleBadge, { backgroundColor: (ROLE_COLORS[member.role] || '#064E3B') + '18' }]}>
+                    <Text style={[styles.roleBadgeText, { color: ROLE_COLORS[member.role] || '#064E3B' }]}>
+                      {t(`careTeam.${member.role}`)}
+                    </Text>
+                  </View>
+                </View>
+                {!member.acceptedAt && (
+                  <View style={styles.pendingBadge}>
+                    <Text style={styles.pendingBadgeText}>{t('careTeam.pending')}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))
+          )
+        ) : feed.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <MaterialCommunityIcons
+              name="timeline-text-outline"
+              size={48}
+              color="#94A3B8"
+            />
+            <Text style={styles.emptyText}>{t('common.noData')}</Text>
+          </View>
+        ) : (
+          <View style={styles.feedCard}>
+            {feed.map((item, index) => {
+              const config = LOG_TYPE_CONFIG[item.logType as LogType];
+              const time = new Date(item.occurredAt);
+              return (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.feedItem,
+                    index < feed.length - 1 && styles.feedItemBorder,
+                  ]}
+                >
+                  <View style={styles.feedAvatar}>
+                    <Text style={styles.feedAvatarText}>
+                      {item.loggedByName.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.feedContent}>
+                    <View style={styles.feedRow}>
+                      <Text style={styles.feedAuthor}>{item.loggedByName}</Text>
+                      <Text style={styles.feedTime}>
+                        {time.toLocaleDateString()}{' '}
+                        {time.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                    <View style={styles.feedTypeRow}>
+                      <MaterialCommunityIcons
+                        name={(config?.icon as any) || 'note-text'}
+                        size={14}
+                        color={config?.color || '#64748B'}
+                      />
+                      <Text style={styles.feedType}>
+                        {t(config?.labelKey || 'careLog.note')}
+                      </Text>
+                    </View>
+                    {item.notes ? (
+                      <Text style={styles.feedNotes} numberOfLines={2}>
+                        {item.notes}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         )}
       </ScrollView>
 
+      {/* FAB for invite */}
       {tab === 'members' && (
         <TouchableOpacity
           onPress={() => navigation.navigate('InviteMember')}
           activeOpacity={0.8}
           style={styles.fab}
         >
-          <LinearGradient
-            colors={[colors.gradientStart, colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.fabGradient}
-          >
-            <MaterialCommunityIcons name="account-plus" size={28} color={colors.textOnPrimary} />
-          </LinearGradient>
+          <MaterialCommunityIcons name="account-plus" size={26} color="#FFFFFF" />
         </TouchableOpacity>
       )}
     </SafeAreaView>
@@ -260,86 +246,151 @@ export function CareTeamScreen({ navigation }: RootStackScreenProps<'CareTeam'>)
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safe: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#064E3B',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.background,
-    ...shadows.sm,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#064E3B',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   tabRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#064E3B',
+    paddingBottom: 2,
   },
   tab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.md,
+    gap: 6,
+    paddingVertical: 12,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomWidth: 3,
-    borderBottomColor: colors.primary,
+    borderBottomColor: '#FFFFFF',
   },
   tabLabel: {
-    ...typography.bodySmall,
-    color: colors.textSecondary,
+    fontSize: 13,
     fontWeight: '500',
+    color: 'rgba(255,255,255,0.5)',
   },
   tabLabelActive: {
-    color: colors.primary,
+    color: '#FFFFFF',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
   },
   content: {
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: 16,
+    gap: 12,
     paddingBottom: 120,
   },
   memberCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-  },
-  memberContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   memberText: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 4,
   },
   memberName: {
-    ...typography.subtitle,
-    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
   },
-  roleChip: {
+  roleBadge: {
     alignSelf: 'flex-start',
-    borderRadius: borderRadius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 9999,
   },
-  roleChipText: {
+  roleBadgeText: {
     fontSize: 11,
+    fontWeight: '600',
   },
-  pendingChip: {
-    backgroundColor: colors.warning + '20',
+  pendingBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  pendingBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#D97706',
+  },
+  feedCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   feedItem: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
+    gap: 12,
+    paddingVertical: 12,
+  },
+  feedItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
+    borderBottomColor: '#F1F5F9',
+  },
+  feedAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#064E3B',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  feedAvatarText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   feedContent: {
     flex: 1,
@@ -350,55 +401,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feedAuthor: {
-    ...typography.bodySmall,
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: '#1E293B',
   },
   feedTime: {
-    ...typography.caption,
-    color: colors.textTertiary,
+    fontSize: 11,
+    color: '#94A3B8',
   },
   feedTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 4,
     marginTop: 2,
   },
   feedType: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: '#64748B',
   },
   feedNotes: {
-    ...typography.caption,
-    color: colors.textTertiary,
+    fontSize: 12,
+    color: '#94A3B8',
     marginTop: 2,
     fontStyle: 'italic',
   },
   emptyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-  },
-  emptyContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 40,
     alignItems: 'center',
-    padding: spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   emptyText: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginTop: spacing.md,
+    fontSize: 15,
+    color: '#64748B',
+    marginTop: 12,
   },
   fab: {
     position: 'absolute',
-    right: spacing.md,
-    bottom: spacing.xl,
-    borderRadius: borderRadius.full,
-    ...shadows.lg,
-  },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: borderRadius.full,
+    right: 20,
+    bottom: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#059669',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
 });
