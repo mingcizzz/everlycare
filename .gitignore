@@ -40,3 +40,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Reference materials (local only)
+docs/reference/
+docs/*.md
