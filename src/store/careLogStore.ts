@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import type { CareLog, LogType, LogData } from '../types/careLog';
 import { careLogService } from '../services/carelog.service';
+import { widgetSyncService } from '../services/widgetSync.service';
+import { useSettingsStore } from './settingsStore';
+import { useRecipientStore } from './recipientStore';
 
 interface DailySummary {
   bowelCount: number;
@@ -48,6 +51,23 @@ export const useCareLogStore = create<CareLogStore>((set, get) => ({
     try {
       const summary = await careLogService.getDailySummary(recipientId, date);
       set({ dailySummary: summary });
+
+      // Sync daily summary to iOS widget (best-effort)
+      const language = useSettingsStore.getState().language;
+      const recipient = useRecipientStore.getState().activeRecipient;
+      widgetSyncService.syncSummary(
+        {
+          urinationCount:  summary.urinationCount,
+          bowelCount:      summary.bowelCount,
+          accidentCount:   summary.incontinenceCount,
+          medicationDone:  summary.medicationsTaken,
+          medicationTotal: summary.medicationsTaken + summary.medicationsMissed,
+          lastUpdated:     new Date().toISOString(),
+        },
+        recipient?.name ?? '',
+        language,
+        recipientId,
+      ).catch(() => {});
     } catch {
       // silently fail
     }

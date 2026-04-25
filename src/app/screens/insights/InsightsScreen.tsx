@@ -22,6 +22,12 @@ import { useSettingsStore } from '../../../store/settingsStore';
 import { insightsService, type InsightsData } from '../../../services/insights.service';
 import { reportService } from '../../../services/report.service';
 import { TrendLineChart } from '../../../components/charts/TrendLineChart';
+import { ToiletHeatmapCard } from '../../../components/charts/ToiletHeatmapCard';
+import { IntervalAnalysisCard } from '../../../components/charts/IntervalAnalysisCard';
+import { FluidDistributionCard } from '../../../components/charts/FluidDistributionCard';
+import { BristolTrendCard } from '../../../components/charts/BristolTrendCard';
+import { DietBowelCard } from '../../../components/charts/DietBowelCard';
+import { AccidentTriggerCard } from '../../../components/charts/AccidentTriggerCard';
 import type { MainTabScreenProps } from '../../../types/navigation';
 
 type PeriodKey = 'daily' | 'weekly' | 'monthly';
@@ -94,8 +100,19 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
     return '#EF4444';
   };
 
-  const periodLabel =
-    period === 'daily' ? 'today' : period === 'weekly' ? 'this week' : 'this month';
+  const PERIOD_I18N_KEYS: Record<PeriodKey, string> = {
+    daily: 'insights.periodDay',
+    weekly: 'insights.periodWeek',
+    monthly: 'insights.periodMonth',
+  };
+  const CARE_EVENTS_KEYS: Record<PeriodKey, string> = {
+    daily: 'insights.careEventsDay',
+    weekly: 'insights.careEventsWeek',
+    monthly: 'insights.careEventsMonth',
+  };
+
+  const periodLabel = t(PERIOD_I18N_KEYS[period]);
+  const careEventsLabel = t(CARE_EVENTS_KEYS[period]);
 
   return (
     <View style={st.root}>
@@ -148,12 +165,12 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
           {hasData ? (
             <View style={st.heroMetric}>
               <Text style={st.heroNumber}>{data.totalLogs}</Text>
-              <Text style={st.heroLabel}>care events {periodLabel}</Text>
+              <Text style={st.heroLabel}>{careEventsLabel}</Text>
             </View>
           ) : (
             <View style={st.heroMetric}>
               <Text style={st.heroNumber}>--</Text>
-              <Text style={st.heroLabel}>care events {periodLabel}</Text>
+              <Text style={st.heroLabel}>{careEventsLabel}</Text>
             </View>
           )}
         </LinearGradient>
@@ -172,7 +189,7 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
               </View>
               <Text style={st.emptyTitle}>{t('insights.noDataYet')}</Text>
               <Text style={st.emptySub}>
-                Start logging care events to see trends and insights here.
+                {t('insights.emptyHint')}
               </Text>
             </View>
           ) : (
@@ -198,6 +215,34 @@ export function InsightsScreen({ navigation }: MainTabScreenProps<'Insights'>) {
 
               {/* Metric Cards */}
               <View style={st.cardsContainer}>
+                {/* Toilet Heatmap */}
+                <ToiletHeatmapCard
+                  hourlyNormal={data.hourlyNormal}
+                  hourlyAccident={data.hourlyAccident}
+                  days={daysForPeriod}
+                />
+
+                {/* Interval Analysis */}
+                <IntervalAnalysisCard
+                  stats={data.intervalStats}
+                  periodLabel={periodLabel}
+                />
+
+                {/* Fluid Distribution */}
+                <FluidDistributionCard
+                  hourlyFluidMl={data.hourlyFluidMl}
+                  days={daysForPeriod}
+                />
+
+                {/* Bristol Trend */}
+                <BristolTrendCard trend={data.bristolTrend} />
+
+                {/* Diet × Bowel Correlation */}
+                <DietBowelCard correlations={data.dietCorrelations} />
+
+                {/* Accident Trigger Analysis */}
+                <AccidentTriggerCard stats={data.accidentTriggers} />
+
                 {/* Bathroom Visits */}
                 <PressableMetricCard
                   icon="toilet"

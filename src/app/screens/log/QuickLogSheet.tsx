@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors, spacing, typography, borderRadius, shadows, logBackgrounds } from '../../../theme';
 import { useCareLogStore } from '../../../store/careLogStore';
+import { useOutdoorModeStore } from '../../../store/outdoorModeStore';
 import { LOG_TYPE_CONFIG, type LogType, type LogData } from '../../../types/careLog';
 
 interface QuickLogSheetProps {
@@ -58,6 +59,7 @@ export function QuickLogSheet({
 }: QuickLogSheetProps) {
   const { t } = useTranslation();
   const { addLog } = useCareLogStore();
+  const isOutdoor = useOutdoorModeStore(s => s.isOutdoor);
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,6 +73,7 @@ export function QuickLogSheet({
 
   const [urinationMethod, setUrinationMethod] = useState<'planned' | 'spontaneous' | 'accident'>('planned');
   const [volume, setVolume] = useState<'small' | 'medium' | 'large'>('medium');
+  const [seatedMinutes, setSeatedMinutes] = useState<number | null>(null);
 
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack' | 'fluid'>('breakfast');
   const [fluidAmount, setFluidAmount] = useState('');
@@ -91,9 +94,15 @@ export function QuickLogSheet({
   const buildLogData = (): LogData => {
     switch (logType) {
       case 'bowel':
-        return { type: bowelType, isAccident, location: bowelLocation };
+        return { type: bowelType, isAccident, location: bowelLocation, isOutdoor: isOutdoor || undefined };
       case 'urination':
-        return { method: urinationMethod, volume, isIncontinence: urinationMethod === 'accident' };
+        return {
+          method: urinationMethod,
+          volume,
+          isIncontinence: urinationMethod === 'accident',
+          seatedMinutes: seatedMinutes ?? undefined,
+          isOutdoor: isOutdoor || undefined,
+        };
       case 'meal':
         return {
           mealType,
@@ -198,6 +207,31 @@ export function QuickLogSheet({
                 />
               ))}
             </View>
+
+            {/* Seated duration — only show for non-accident */}
+            {urinationMethod !== 'accident' && (
+              <>
+                <View style={styles.durationLabelRow}>
+                  <Text style={styles.sectionLabel}>{t('urination.seatedLabel')}</Text>
+                  <Text style={styles.durationHint}>{t('urination.seatedHint')}</Text>
+                </View>
+                <View style={styles.chipRow}>
+                  {([1, 2, 3, 4, 5] as const).map((min) => (
+                    <ChipOption
+                      key={min}
+                      label={min === 5 ? t('urination.seatedMin5Plus') : t('urination.seatedMinCount', { min })}
+                      selected={seatedMinutes === min}
+                      onPress={() => setSeatedMinutes(seatedMinutes === min ? null : min)}
+                    />
+                  ))}
+                </View>
+                {seatedMinutes !== null && seatedMinutes < 2 && (
+                  <Text style={styles.durationWarning}>
+                    {t('urination.seatedWarning')}
+                  </Text>
+                )}
+              </>
+            )}
           </>
         );
 
@@ -388,6 +422,12 @@ export function QuickLogSheet({
               <Text style={styles.sheetTitle}>
                 {t(`careLog.${logType}`)}
               </Text>
+              {isOutdoor && (
+                <View style={styles.outdoorBadge}>
+                  <MaterialCommunityIcons name="walk" size={11} color="#D97706" />
+                  <Text style={styles.outdoorBadgeText}>{t('home.outdoor.active')}</Text>
+                </View>
+              )}
             </View>
 
             {renderForm()}
@@ -530,5 +570,40 @@ const styles = StyleSheet.create({
     ...typography.subtitle,
     color: colors.textOnPrimary,
     fontSize: 16,
+  },
+  durationLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  durationHint: {
+    fontSize: 12,
+    color: '#0D9488',
+    fontWeight: '500',
+  },
+  durationWarning: {
+    fontSize: 12,
+    color: '#D97706',
+    marginTop: 6,
+    marginLeft: 2,
+  },
+  outdoorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+    marginLeft: 'auto',
+  },
+  outdoorBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#D97706',
   },
 });

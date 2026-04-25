@@ -131,4 +131,23 @@ export const notificationService = {
   async getAllScheduled() {
     return Notifications.getAllScheduledNotificationsAsync();
   },
+
+  /**
+   * Register notification action categories. Call once at app startup.
+   * - TOILET_REMINDER: "已如厕" logs a visit / "30分钟后" snoozes the reminder
+   */
+  async setupCategories(): Promise<void> {
+    await Notifications.setNotificationCategoryAsync('TOILET_REMINDER', [
+      {
+        identifier: 'LOGGED',
+        buttonTitle: '✓ 已如厕',
+        options: { opensAppToForeground: false },
+      },
+      {
+        identifier: 'SNOOZE_30',
+        buttonTitle: '⏰ 30分钟后',
+        options: { opensAppToForeground: false },
+      },
+    ]);
+  },
 };

@@ -4,6 +4,9 @@ import * as Notifications from 'expo-notifications';
 import { careLogService } from '../services/carelog.service';
 import { weatherService } from '../services/weather.service';
 import { computeToiletPrediction, type PredictionResult } from '../services/toiletPrediction.engine';
+import { useOutdoorModeStore } from './outdoorModeStore';
+import { useSettingsStore } from './settingsStore';
+import { widgetSyncService } from '../services/widgetSync.service';
 import type { CareRecipient } from '../types/recipient';
 import type { MealLogData, ActivityLogData } from '../types/careLog';
 import { getToday } from '../utils/date';
@@ -77,6 +80,8 @@ export const useToiletPredictionStore = create<ToiletPredictionState & ToiletPre
           type: (l.data as ActivityLogData).activityType,
         }));
 
+        const isOutdoor = useOutdoorModeStore.getState().isOutdoor;
+
         const prediction = computeToiletPrediction({
           now: new Date(),
           lastUrinationAt,
@@ -85,10 +90,26 @@ export const useToiletPredictionStore = create<ToiletPredictionState & ToiletPre
           todayActivityLogs: actLogs,
           weather,
           recipient,
+          isOutdoor,
         });
 
         set({ prediction, weatherAvailable: weather !== null });
         await scheduleSmartNotification(prediction);
+
+        // Sync widget data (best-effort)
+        const language = useSettingsStore.getState().language;
+        widgetSyncService.syncPrediction(
+          {
+            predictedAt:     prediction.predictedAt.toISOString(),
+            windowStartAt:   prediction.windowStartAt.toISOString(),
+            windowEndAt:     prediction.windowEndAt.toISOString(),
+            urgencyLevel:    prediction.urgencyLevel,
+            confidenceScore: prediction.confidenceScore,
+          },
+          recipient.name,
+          language,
+          recipientId,
+        ).catch(() => {});
       } catch {
         // Silent fail — prediction simply isn't updated
       } finally {
@@ -125,11 +146,17 @@ async function scheduleSmartNotification(prediction: PredictionResult): Promise<
     );
     if (secondsFromNow < 60) return; // window already starting or passed
 
+    const isZh = useSettingsStore.getState().language === 'zh-CN';
+    const timeRange = `${fmtTime(prediction.windowStartAt)} – ${fmtTime(prediction.windowEndAt)}`;
+
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: '🚽 如厕时间到了',
-        body: `预测时段：${fmtTime(prediction.windowStartAt)} – ${fmtTime(prediction.windowEndAt)}`,
+        title: isZh ? '🚽 如厕时间到了' : '🚽 Toilet Reminder',
+        body: isZh
+          ? `预测时段：${timeRange}`
+          : `Predicted window: ${timeRange}`,
         sound: 'default',
+        categoryIdentifier: 'TOILET_REMINDER',
         data: { type: 'smart_toilet' },
       },
       trigger: {

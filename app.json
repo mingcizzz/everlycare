@@ -16,6 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.everlycare.app",
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.everlycare.app"]
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "EverlyCare needs camera access to take photos for care recipient profiles.",
         "NSPhotoLibraryUsageDescription": "EverlyCare needs photo library access for profile avatars.",
@@ -46,7 +49,9 @@
           "color": "#0D9488"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "./plugins/withEverlyCareWidget",
+      "./plugins/withEverlyCareAndroidWidget"
     ],
     "extra": {
       "eas": {

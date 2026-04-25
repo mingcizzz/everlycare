@@ -17,6 +17,15 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
   const { t } = useTranslation();
   const config = LOG_TYPE_CONFIG[log.logType];
 
+  const data = log.data as any;
+  const isAccident =
+    (log.logType === 'urination' && (data?.isIncontinence || data?.method === 'accident')) ||
+    (log.logType === 'bowel' && data?.isAccident);
+
+  const borderColor = isAccident ? '#EF4444' : config.color;
+  const iconColor   = isAccident ? '#EF4444' : config.color;
+  const iconBg      = isAccident ? '#FEE2E2' : config.color + '1F';
+
   const summary = buildLogSummary(log, t);
 
   return (
@@ -37,16 +46,23 @@ export function LogEntryCard({ log, onPress, onLongPress, showDate }: LogEntryCa
       </View>
 
       {/* Card */}
-      <View style={[styles.card, { borderLeftColor: config.color }]}>
+      <View style={[styles.card, { borderLeftColor: borderColor }]}>
         <View style={styles.headerRow}>
-          <View style={[styles.iconBg, { backgroundColor: config.color + '1F' }]}>
+          <View style={[styles.iconBg, { backgroundColor: iconBg }]}>
             <MaterialCommunityIcons
-              name={config.icon as any}
+              name={isAccident ? 'alert-circle' : (config.icon as any)}
               size={24}
-              color={config.color}
+              color={iconColor}
             />
           </View>
-          <Text style={styles.label}>{t(config.labelKey)}</Text>
+          <Text style={[styles.label, isAccident && styles.labelAccident]}>
+            {t(config.labelKey)}
+          </Text>
+          {isAccident && (
+            <View style={styles.accidentBadge}>
+              <Text style={styles.accidentBadgeText}>{t('careLog.accident')}</Text>
+            </View>
+          )}
         </View>
         {summary ? (
           <Text style={styles.summary} numberOfLines={2}>
@@ -147,6 +163,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#1E293B',
+  },
+  labelAccident: {
+    color: '#B91C1C',
+  },
+  accidentBadge: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginLeft: 4,
+  },
+  accidentBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#EF4444',
   },
   summary: {
     fontSize: 13,

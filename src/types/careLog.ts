@@ -35,6 +35,8 @@ export interface BowelLogData {
   location: 'toilet' | 'diaper' | 'other';
   bristolScale?: number; // 1-7
   amount?: 'small' | 'medium' | 'large';
+  /** True when outdoor mode was active at log time */
+  isOutdoor?: boolean;
 }
 
 export interface UrinationLogData {
@@ -42,6 +44,10 @@ export interface UrinationLogData {
   volume: 'small' | 'medium' | 'large';
   isIncontinence: boolean;
   location?: string;
+  /** How long the person was seated on the toilet, in minutes (optional) */
+  seatedMinutes?: number;
+  /** True when outdoor mode was active at log time */
+  isOutdoor?: boolean;
 }
 
 export interface MealLogData {

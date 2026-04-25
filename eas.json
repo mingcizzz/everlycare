@@ -8,19 +8,44 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "image": "latest"
+      },
+      "android": {
+        "image": "latest",
+        "buildType": "apk"
+      }
+    },
+    "device": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false,
+        "image": "latest",
+        "credentialsSource": "remote"
+      },
+      "android": {
+        "image": "latest",
+        "buildType": "apk"
       }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
-        "simulator": false
+        "simulator": false,
+        "image": "latest",
+        "credentialsSource": "remote"
+      },
+      "android": {
+        "image": "latest",
+        "buildType": "apk"
       }
     },
     "production": {
       "autoIncrement": true,
       "ios": {
-        "image": "latest"
+        "image": "latest",
+        "credentialsSource": "remote"
       },
       "android": {
         "image": "latest",
@@ -32,7 +57,12 @@
     "production": {
       "ios": {
         "appleId": "mingchi.zhang@icloud.com",
-        "appleTeamId": "ZC75YG9SY4"
+        "appleTeamId": "ZC75YG9SY4",
+        "ascAppId": ""
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-services-key.json",
+        "track": "internal"
       }
     }
   }

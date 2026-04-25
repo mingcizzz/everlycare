@@ -9,6 +9,7 @@ import {
 import { Text } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { type PredictionResult, getUrgencyLevel, type UrgencyLevel } from '../../services/toiletPrediction.engine';
 import type { CareLog } from '../../types/careLog';
 
@@ -24,11 +25,11 @@ const TICK_OFFSETS = [0, 30, 60, 90, 120, 150, 180, 210, 240];
 
 // ── Urgency config ────────────────────────────────────────────────────────────
 
-const URGENCY = {
-  low:        { hex: '#5EEAD4', opacity: 0.45, label: '等待中',  border: '#5EEAD4' },
-  approaching:{ hex: '#0D9488', opacity: 0.75, label: '即将到来', border: '#0D9488' },
-  high:       { hex: '#D97706', opacity: 0.88, label: '请注意',  border: '#D97706' },
-  overdue:    { hex: '#EF4444', opacity: 0.92, label: '已超时',  border: '#EF4444' },
+const URGENCY_HEX: Record<UrgencyLevel, { hex: string; opacity: number; border: string }> = {
+  low:        { hex: '#5EEAD4', opacity: 0.45, border: '#5EEAD4' },
+  approaching:{ hex: '#0D9488', opacity: 0.75, border: '#0D9488' },
+  high:       { hex: '#D97706', opacity: 0.88, border: '#D97706' },
+  overdue:    { hex: '#EF4444', opacity: 0.92, border: '#EF4444' },
 };
 
 function toRgba(hex: string, alpha: number): string {
@@ -40,15 +41,8 @@ function toRgba(hex: string, alpha: number): string {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtHHMM(d: Date): string {
-  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
-}
-
-function countdown(predictedAt: Date, now: Date): string {
-  const diffMin = Math.round((predictedAt.getTime() - now.getTime()) / 60000);
-  if (diffMin > 0) return `约 ${diffMin} 分钟后`;
-  if (diffMin === 0) return '现在';
-  return `已超时 ${Math.abs(diffMin)} 分钟`;
+function fmtHHMM(d: Date, language: string): string {
+  return d.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function confidenceDots(score: number): number {
@@ -75,9 +69,11 @@ interface StripProps {
   todayUrinations: CareLog[];
   now: Date;
   urgency: UrgencyLevel;
+  language: string;
+  nowLabel: string;
 }
 
-function TimelineStrip({ prediction, todayUrinations, now, urgency }: StripProps) {
+function TimelineStrip({ prediction, todayUrinations, now, urgency, language, nowLabel }: StripProps) {
   const [stripWidth, setStripWidth] = useState(0);
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     setStripWidth(e.nativeEvent.layout.width);
@@ -104,7 +100,7 @@ function TimelineStrip({ prediction, todayUrinations, now, urgency }: StripProps
     ? clamp((predictedAtX - windowStartX) / windowWidth, 0.1, 0.9)
     : 0.5;
 
-  const { hex, opacity } = URGENCY[urgency];
+  const { hex, opacity } = URGENCY_HEX[urgency];
   const gradColors: [string, string, string] = [
     toRgba(hex, 0),
     toRgba(hex, opacity),
@@ -174,7 +170,7 @@ function TimelineStrip({ prediction, todayUrinations, now, urgency }: StripProps
               key={offset}
               style={[st.tickLabel, { left: x - 14 }]}
             >
-              {fmtHHMM(labelTime)}
+              {fmtHHMM(labelTime, language)}
             </Text>
           );
         })}
@@ -183,7 +179,7 @@ function TimelineStrip({ prediction, todayUrinations, now, urgency }: StripProps
       {/* NOW label below strip */}
       {stripWidth > 0 && (
         <Text style={[st.nowLabel, { left: Math.max(0, nowX - 14) }]}>
-          ▲ 现在
+          {nowLabel}
         </Text>
       )}
     </View>
@@ -209,6 +205,7 @@ export function ToiletPredictionCard({
   todayUrinations,
   onLogToilet,
 }: ToiletPredictionCardProps) {
+  const { t, i18n } = useTranslation();
   const [now, setNow] = useState(new Date());
 
   // Refresh "now" every minute so countdown and urgency stay live
@@ -217,11 +214,28 @@ export function ToiletPredictionCard({
     return () => clearInterval(id);
   }, []);
 
+  const countdown = (predictedAt: Date): string => {
+    const diffMin = Math.round((predictedAt.getTime() - now.getTime()) / 60000);
+    if (diffMin > 0) return t('home.outdoor.countdownFuture', { min: diffMin });
+    if (diffMin === 0) return t('home.outdoor.countdownNow');
+    return t('home.outdoor.countdownOverdue', { min: Math.abs(diffMin) });
+  };
+
+  const urgencyLabel = (level: UrgencyLevel): string => {
+    const KEY: Record<UrgencyLevel, string> = {
+      low: 'home.outdoor.urgencyLow',
+      approaching: 'home.outdoor.urgencyApproaching',
+      high: 'home.outdoor.urgencyHigh',
+      overdue: 'home.outdoor.urgencyOverdue',
+    };
+    return t(KEY[level]);
+  };
+
   if (isLoading && !prediction) {
     return (
       <View style={[st.card, st.loadingCard]}>
         <ActivityIndicator size="small" color="#0D9488" />
-        <Text style={st.loadingText}>正在计算预测…</Text>
+        <Text style={st.loadingText}>{t('home.outdoor.cardLoading')}</Text>
       </View>
     );
   }
@@ -230,13 +244,13 @@ export function ToiletPredictionCard({
     return (
       <View style={[st.card, st.emptyCard]}>
         <MaterialCommunityIcons name="toilet" size={28} color="#CBD5E1" />
-        <Text style={st.emptyText}>开始记录如厕，即可启用智能预测</Text>
+        <Text style={st.emptyText}>{t('home.outdoor.cardEmpty')}</Text>
       </View>
     );
   }
 
   const urgency = getUrgencyLevel(prediction, now);
-  const cfg = URGENCY[urgency];
+  const cfg = URGENCY_HEX[urgency];
   const dots = confidenceDots(prediction.confidenceScore);
 
   // Active non-base adjustments to show as factor badges
@@ -250,17 +264,17 @@ export function ToiletPredictionCard({
       <View style={st.header}>
         <View style={st.headerLeft}>
           <MaterialCommunityIcons name="toilet" size={18} color="#064E3B" />
-          <Text style={st.headerTitle}>智能如厕预测</Text>
+          <Text style={st.headerTitle}>{t('home.outdoor.cardTitle')}</Text>
         </View>
         <View style={[st.urgencyBadge, { backgroundColor: toRgba(cfg.hex, 0.15) }]}>
-          <Text style={[st.urgencyText, { color: cfg.border }]}>{cfg.label}</Text>
+          <Text style={[st.urgencyText, { color: cfg.border }]}>{urgencyLabel(urgency)}</Text>
         </View>
       </View>
 
       {/* Countdown + time range */}
       <View style={st.countdownRow}>
         <Text style={[st.countdown, { color: urgency === 'overdue' ? '#EF4444' : '#064E3B' }]}>
-          {countdown(prediction.predictedAt, now)}
+          {countdown(prediction.predictedAt)}
         </Text>
         <View style={st.dotsRow}>
           {[1, 2, 3].map(i => (
@@ -272,7 +286,10 @@ export function ToiletPredictionCard({
         </View>
       </View>
       <Text style={st.windowRange}>
-        预测时段：{fmtHHMM(prediction.windowStartAt)} – {fmtHHMM(prediction.windowEndAt)}
+        {t('home.outdoor.cardWindow', {
+          start: fmtHHMM(prediction.windowStartAt, i18n.language),
+          end: fmtHHMM(prediction.windowEndAt, i18n.language),
+        })}
       </Text>
 
       {/* Timeline strip */}
@@ -282,6 +299,8 @@ export function ToiletPredictionCard({
           todayUrinations={todayUrinations}
           now={now}
           urgency={urgency}
+          language={i18n.language}
+          nowLabel={t('home.outdoor.cardNow')}
         />
       </View>
 
@@ -296,21 +315,21 @@ export function ToiletPredictionCard({
                 color="#64748B"
               />
               <Text style={st.factorText}>
-                {a.multiplier < 1 ? '↑频' : '↓频'}
+                {a.multiplier < 1 ? t('home.outdoor.factorFreqUp') : t('home.outdoor.factorFreqDown')}
               </Text>
             </View>
           ))}
           {!prediction.hasHistoricalData && (
             <View style={st.factorChip}>
               <MaterialCommunityIcons name="information-outline" size={11} color="#94A3B8" />
-              <Text style={[st.factorText, { color: '#94A3B8' }]}>积累中</Text>
+              <Text style={[st.factorText, { color: '#94A3B8' }]}>{t('home.outdoor.factorAccumulating')}</Text>
             </View>
           )}
         </View>
 
         <TouchableOpacity style={st.logBtn} onPress={onLogToilet} activeOpacity={0.8}>
           <MaterialCommunityIcons name="water" size={14} color="#FFF" />
-          <Text style={st.logBtnText}>现在记录</Text>
+          <Text style={st.logBtnText}>{t('home.outdoor.logNow')}</Text>
         </TouchableOpacity>
       </View>
     </View>

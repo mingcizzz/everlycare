@@ -43,12 +43,14 @@ export interface PredictionInput {
   todayActivityLogs: { occurredAt: Date; durationMinutes: number; type: string }[];
   weather: { tempC: number; humidityPct: number } | null;
   recipient: Pick<CareRecipient, 'dateOfBirth' | 'medicalConditions'>;
+  /** Outdoor mode active — external stimuli increase urgency, shorten interval ×0.7 */
+  isOutdoor?: boolean;
 }
 
 export type UrgencyLevel = 'low' | 'approaching' | 'high' | 'overdue';
 
 export type AdjustmentFactor =
-  | 'base' | 'pattern' | 'weather' | 'activity' | 'fluid' | 'age' | 'medication';
+  | 'base' | 'pattern' | 'weather' | 'activity' | 'fluid' | 'age' | 'medication' | 'outdoor';
 
 export interface AdjustmentDetail {
   factor: AdjustmentFactor;
@@ -128,7 +130,7 @@ function computePatternMultiplier(
 
 export function computeToiletPrediction(input: PredictionInput): PredictionResult {
   const { now, lastUrinationAt, historicalUrinations,
-          todayFluidLogs, todayActivityLogs, weather, recipient } = input;
+          todayFluidLogs, todayActivityLogs, weather, recipient, isOutdoor } = input;
 
   const adjustments: AdjustmentDetail[] = [];
   let confidenceScore = 0.25;
@@ -215,8 +217,15 @@ export function computeToiletPrediction(input: PredictionInput): PredictionResul
     adjustments.push({ factor: 'medication', multiplier: 1.18, reason: '抗胆碱/神经源性膀胱' });
   }
 
+  // 8. Outdoor mode: environmental stimuli shorten interval ────────────────────
+  let outdoorMult = 1.0;
+  if (isOutdoor) {
+    outdoorMult = 0.7;
+    adjustments.push({ factor: 'outdoor', multiplier: 0.7, reason: '外出模式（环境刺激增加）' });
+  }
+
   // ── Compose ───────────────────────────────────────────────────────────────
-  const totalMult = patternMult * weatherMult * activityMult * fluidMult * ageMult * medMult;
+  const totalMult = patternMult * weatherMult * activityMult * fluidMult * ageMult * medMult * outdoorMult;
   const adjustedInterval = clamp(Math.round(baseInterval * totalMult), 30, 240);
 
   // If no urination logged yet, estimate start as 40% into the interval ago

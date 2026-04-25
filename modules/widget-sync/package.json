@@ -1,0 +1,11 @@
+{
+  "name": "widget-sync",
+  "version": "1.0.0",
+  "description": "Expo local native module to sync data to iOS WidgetKit",
+  "main": "index.ts",
+  "source": "index.ts",
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*"
+  }
+}

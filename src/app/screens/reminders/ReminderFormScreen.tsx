@@ -267,8 +267,7 @@ export function ReminderFormScreen({
               color="#059669"
             />
             <Text style={styles.infoText}>
-              Based on real caregiving experience: toilet reminders every 2 hours
-              help prevent incontinence.
+              固定间隔提醒可作兜底备用。建议同时使用主屏「如厕预测」——它会根据个人规律、天气和运动自动调整时间，比固定间隔更准确。
             </Text>
           </View>
 

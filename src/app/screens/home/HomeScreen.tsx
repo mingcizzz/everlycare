@@ -9,6 +9,8 @@ import {
   Dimensions,
   StatusBar,
   ImageBackground,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +23,7 @@ import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
 import { useToiletPredictionStore } from '../../../store/toiletPredictionStore';
+import { useOutdoorModeStore } from '../../../store/outdoorModeStore';
 import { ToiletPredictionCard } from '../../../components/toilet/ToiletPredictionCard';
 import { colors } from '../../../theme';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
@@ -36,20 +39,27 @@ const R = (RING - STR) / 2;
 const C = 2 * Math.PI * R;
 const TARGET = 8;
 
-function greet() {
+function greetIcon() {
   const h = new Date().getHours();
-  if (h < 12) return { t: 'Good morning', i: 'weather-sunny' as const };
-  if (h < 18) return { t: 'Good afternoon', i: 'weather-partly-cloudy' as const };
-  return { t: 'Good evening', i: 'weather-night' as const };
+  if (h < 12) return 'weather-sunny' as const;
+  if (h < 18) return 'weather-partly-cloudy' as const;
+  return 'weather-night' as const;
 }
 
-const ACTIONS: { type: LogType; icon: string; label: string; bg: string; fg: string }[] = [
-  { type: 'bowel', icon: 'toilet', label: 'Bowel', bg: '#FEF3C7', fg: '#D97706' },
-  { type: 'urination', icon: 'water', label: 'Fluid', bg: '#DBEAFE', fg: '#2563EB' },
-  { type: 'medication', icon: 'pill', label: 'Meds', bg: '#EDE9FE', fg: '#7C3AED' },
-  { type: 'meal', icon: 'food-apple', label: 'Meal', bg: '#D1FAE5', fg: '#059669' },
-  { type: 'mood', icon: 'emoticon-happy-outline', label: 'Mood', bg: '#FCE7F3', fg: '#DB2777' },
-  { type: 'note', icon: 'note-edit-outline', label: 'Note', bg: '#F1F5F9', fg: '#475569' },
+function greetKey() {
+  const h = new Date().getHours();
+  if (h < 12) return 'home.greetMorning';
+  if (h < 18) return 'home.greetAfternoon';
+  return 'home.greetEvening';
+}
+
+const ACTIONS: { type: LogType; icon: string; labelKey: string; bg: string; fg: string }[] = [
+  { type: 'bowel',      icon: 'toilet',                 labelKey: 'careLog.bowel',      bg: '#FEF3C7', fg: '#D97706' },
+  { type: 'urination',  icon: 'water',                  labelKey: 'careLog.urination',  bg: '#DBEAFE', fg: '#2563EB' },
+  { type: 'medication', icon: 'pill',                   labelKey: 'careLog.medication', bg: '#EDE9FE', fg: '#7C3AED' },
+  { type: 'meal',       icon: 'food-apple',             labelKey: 'careLog.meal',       bg: '#D1FAE5', fg: '#059669' },
+  { type: 'mood',       icon: 'emoticon-happy-outline', labelKey: 'careLog.mood',       bg: '#FCE7F3', fg: '#DB2777' },
+  { type: 'note',       icon: 'note-edit-outline',      labelKey: 'careLog.note',       bg: '#F1F5F9', fg: '#475569' },
 ];
 
 /* ━━ Glass Stat Card ━━ */
@@ -83,11 +93,31 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { logs, dailySummary, isLoading, loadLogs, loadDailySummary } = useCareLogStore();
   const { prediction, isLoading: predLoading, refreshPrediction, onToiletVisitLogged } =
     useToiletPredictionStore();
+  const {
+    isOutdoor, showChecklist, checklist,
+    openChecklist, closeChecklist, toggleChecklistItem, confirmOutdoor, deactivateOutdoor,
+  } = useOutdoorModeStore();
   const [ql, setQl] = useState<LogType | null>(null);
+  const [accidentSaved, setAccidentSaved] = useState(false);
+  const { addLog } = useCareLogStore();
 
   const today = getToday();
-  const g = greet();
 
+  const handleQuickAccident = useCallback(async () => {
+    if (!activeRecipient) return;
+    try {
+      await addLog(
+        activeRecipient.id,
+        'urination',
+        { method: 'accident', volume: 'medium', isIncontinence: true },
+        new Date().toISOString()
+      );
+      setAccidentSaved(true);
+      setTimeout(() => setAccidentSaved(false), 2500);
+      onToiletVisitLogged(activeRecipient.id, activeRecipient);
+      loadDailySummary(activeRecipient.id, today);
+    } catch { /* silent */ }
+  }, [activeRecipient?.id, today]);
   const refresh = useCallback(async () => {
     await loadRecipients();
     if (activeRecipient) {
@@ -116,6 +146,8 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const total = dailySummary?.totalLogs ?? 0;
   const pct = Math.min(1, total / TARGET);
   const dash = C * (1 - pct);
+  const greetText = t(greetKey());
+  const greetI = greetIcon();
 
   return (
     <View style={st.root}>
@@ -138,8 +170,8 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
 
           {/* Greeting */}
           <View style={st.greetRow}>
-            <MaterialCommunityIcons name={g.i as any} size={16} color="rgba(255,255,255,0.6)" />
-            <Text style={st.greetTxt}>{g.t}</Text>
+            <MaterialCommunityIcons name={greetI as any} size={16} color="rgba(255,255,255,0.6)" />
+            <Text style={st.greetTxt}>{greetText}</Text>
           </View>
           <Text style={st.heroName}>{user?.displayName || 'EverlyCare'}</Text>
           {activeRecipient && (
@@ -164,7 +196,7 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
             </Svg>
             <View style={st.ringCenter}>
               <Text style={st.ringNum}>{total}</Text>
-              <Text style={st.ringSub}>of {TARGET} logs</Text>
+              <Text style={st.ringSub}>{t('home.ringSubtitle', { target: TARGET })}</Text>
             </View>
           </View>
 
@@ -172,16 +204,16 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           <View style={st.glassRow}>
             <GlassStat icon="toilet" accent="#F59E0B"
               value={`${(dailySummary?.bowelCount ?? 0) + (dailySummary?.urinationCount ?? 0)}`}
-              label="Bath" />
+              label={t('home.statBath')} />
             <GlassStat icon="cup-water" accent="#3B82F6"
               value={`${dailySummary?.fluidTotalMl ?? 0}`} unit="ml"
-              label="Fluid" />
+              label={t('home.statFluid')} />
             <GlassStat icon="pill" accent="#8B5CF6"
               value={`${dailySummary?.medicationsTaken ?? 0}`}
-              label="Meds" />
+              label={t('home.statMeds')} />
             <GlassStat icon="food-apple" accent="#10B981"
               value={`${dailySummary?.mealCount ?? 0}`}
-              label="Meals" />
+              label={t('home.statMeals')} />
           </View>
         </LinearGradient>
 
@@ -196,16 +228,57 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
                 <View style={[st.actIcon, { backgroundColor: a.bg }]}>
                   <MaterialCommunityIcons name={a.icon as any} size={24} color={a.fg} />
                 </View>
-                <Text style={st.actLabel}>{a.label}</Text>
+                <Text style={st.actLabel}>{t(a.labelKey)}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
+        {/* ━━ QUICK ACCIDENT ━━ */}
+        {activeRecipient && (
+          <View style={st.section}>
+            <TouchableOpacity
+              style={[st.accidentBtn, accidentSaved && st.accidentBtnSaved]}
+              onPress={handleQuickAccident}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons
+                name={accidentSaved ? 'check-circle' : 'alert-circle'}
+                size={20}
+                color="#FFF"
+              />
+              <Text style={st.accidentBtnText}>
+                {accidentSaved ? t('home.accidentBtn.saved') : t('home.accidentBtn.default')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ━━ OUTDOOR MODE ━━ */}
+        <View style={st.section}>
+          <TouchableOpacity
+            style={[st.outdoorBtn, isOutdoor && st.outdoorBtnActive]}
+            onPress={isOutdoor ? deactivateOutdoor : openChecklist}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons
+              name={isOutdoor ? 'map-marker-check' : 'walk'}
+              size={18}
+              color={isOutdoor ? '#FFFFFF' : '#D97706'}
+            />
+            <Text style={[st.outdoorBtnText, isOutdoor && st.outdoorBtnTextActive]}>
+              {isOutdoor ? t('home.outdoor.active') : t('home.outdoor.inactive')}
+            </Text>
+            {isOutdoor && (
+              <View style={st.outdoorLiveDot} />
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* ━━ TOILET PREDICTION ━━ */}
         {activeRecipient && (
           <View style={st.section}>
-            <Text style={st.secTitle}>如厕预测</Text>
+            <Text style={st.secTitle}>{t('home.outdoor.predictionTitle')}</Text>
             <ToiletPredictionCard
               prediction={prediction}
               isLoading={predLoading}
@@ -255,6 +328,35 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
             }
           }} />
       )}
+
+      {/* ━━ OUTDOOR CHECKLIST MODAL ━━ */}
+      <Modal visible={showChecklist} animationType="slide" transparent onRequestClose={closeChecklist}>
+        <View style={st.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={closeChecklist} />
+          <View style={st.modalSheet}>
+            <View style={st.modalHandle} />
+            <Text style={st.modalTitle}>{t('home.outdoor.checklistTitle')}</Text>
+            <Text style={st.modalSubtitle}>{t('home.outdoor.checklistSubtitle')}</Text>
+            {checklist.map(item => (
+              <TouchableOpacity
+                key={item.id}
+                style={st.checkRow}
+                onPress={() => toggleChecklistItem(item.id)}
+                activeOpacity={0.7}
+              >
+                <View style={[st.checkbox, item.checked && st.checkboxChecked]}>
+                  {item.checked && <MaterialCommunityIcons name="check" size={14} color="#FFF" />}
+                </View>
+                <Text style={[st.checkLabel, item.checked && st.checkLabelDone]}>{t(item.labelKey)}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={st.departBtn} onPress={confirmOutdoor} activeOpacity={0.8}>
+              <MaterialCommunityIcons name="walk" size={18} color="#FFF" />
+              <Text style={st.departBtnText}>{t('home.outdoor.departBtn')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -321,6 +423,134 @@ const st = StyleSheet.create({
   /* Empty */
   empty: { alignItems: 'center', paddingVertical: 36 },
   emptyTxt: { fontSize: 14, color: '#94A3B8', marginTop: 12 },
+
+  /* Outdoor mode */
+  outdoorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 16,
+    height: 44,
+    borderWidth: 1.5,
+    borderColor: '#FCD34D',
+  },
+  outdoorBtnActive: {
+    backgroundColor: '#D97706',
+    borderColor: '#D97706',
+  },
+  outdoorBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#D97706',
+  },
+  outdoorBtnTextActive: {
+    color: '#FFFFFF',
+  },
+  outdoorLiveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#FDE68A',
+  },
+
+  /* Outdoor checklist modal */
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  modalSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E2E8F0',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#94A3B8',
+    marginBottom: 20,
+  },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#059669',
+    borderColor: '#059669',
+  },
+  checkLabel: {
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '500',
+  },
+  checkLabelDone: {
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
+  },
+  departBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#D97706',
+    borderRadius: 20,
+    height: 52,
+    marginTop: 24,
+  },
+  departBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+
+  /* Accident button */
+  accidentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#DC2626',
+    borderRadius: 16,
+    height: 48,
+  },
+  accidentBtnSaved: {
+    backgroundColor: '#059669',
+  },
+  accidentBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 
   /* FAB */
   fab: { position: 'absolute', right: 20, shadowColor: '#059669', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 10 },
