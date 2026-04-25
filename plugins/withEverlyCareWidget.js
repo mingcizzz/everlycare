@@ -210,11 +210,50 @@ function collectFiles(dir, ext) {
   return results;
 }
 
+// ─── 4. Fix resource bundle code signing (Xcode 14+) ─────────────────────────
+// Xcode 14+ signs resource bundles by default. Pod targets don't have a team,
+// so the build fails. The fix is to set CODE_SIGNING_ALLOWED = NO for all pod
+// targets in the post_install hook.
+
+function withPodfileResourceBundleFix(config) {
+  return withDangerousMod(config, [
+    'ios',
+    async (mod) => {
+      const podfilePath = path.join(mod.modRequest.projectRoot, 'ios', 'Podfile');
+      if (!fs.existsSync(podfilePath)) return mod;
+
+      let podfile = fs.readFileSync(podfilePath, 'utf8');
+
+      const fixSnippet = `
+  # Fix: Xcode 14+ signs resource bundles by default — disable for all pods.
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+    end
+  end
+`;
+
+      // Insert just before the closing `end` of the post_install block
+      const postInstallEnd = podfile.lastIndexOf('\n  end\nend');
+      if (postInstallEnd !== -1 && !podfile.includes('CODE_SIGNING_ALLOWED')) {
+        podfile =
+          podfile.slice(0, postInstallEnd) +
+          fixSnippet +
+          podfile.slice(postInstallEnd);
+        fs.writeFileSync(podfilePath, podfile);
+      }
+
+      return mod;
+    },
+  ]);
+}
+
 // ─── Export composite plugin ──────────────────────────────────────────────────
 
 module.exports = function withEverlyCareWidget(config) {
   config = withAppGroupEntitlement(config);
   config = withCopyWidgetSources(config);
   config = withWidgetTarget(config);
+  config = withPodfileResourceBundleFix(config);
   return config;
 };
