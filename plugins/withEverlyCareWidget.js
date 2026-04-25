@@ -104,13 +104,18 @@ function withWidgetTarget(config) {
       widgetTarget.uuid
     );
 
+    // Only add Resources phase if there are xcassets to compile.
+    // DO NOT include AppIcon.appiconset in the widget — it duplicates the main
+    // app's AppIcon compilation and causes "Unexpected duplicate tasks" ×2.
     const assetFiles = collectFiles(widgetDir, '.xcassets');
-    xcodeProject.addBuildPhase(
-      assetFiles.map((f) => path.relative(path.join(projectRoot, 'ios'), f)),
-      'PBXResourcesBuildPhase',
-      'Resources',
-      widgetTarget.uuid
-    );
+    if (assetFiles.length > 0) {
+      xcodeProject.addBuildPhase(
+        assetFiles.map((f) => path.relative(path.join(projectRoot, 'ios'), f)),
+        'PBXResourcesBuildPhase',
+        'Resources',
+        widgetTarget.uuid
+      );
+    }
 
     // Add build settings
     const configurations = xcodeProject.pbxXCBuildConfigurationSection();
