@@ -58,7 +58,7 @@
       "ios": {
         "appleId": "mingchi.zhang@icloud.com",
         "appleTeamId": "ZC75YG9SY4",
-        "ascAppId": ""
+        "ascAppId": "PLACEHOLDER"
       },
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json",

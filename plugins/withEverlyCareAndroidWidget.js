@@ -64,7 +64,7 @@ function withWidgetManifest(config) {
     if (!app) return mod;
 
     // Avoid duplicate entries
-    const receivers = (app.receiver || []) as any[];
+    const receivers = (app.receiver || []);
     const alreadyAdded = receivers.some(
       (r) => r.$?.['android:name'] === WIDGET_CLASS
     );
