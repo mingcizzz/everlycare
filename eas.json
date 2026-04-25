@@ -9,10 +9,10 @@
       "distribution": "internal",
       "ios": {
         "simulator": true,
-        "image": "latest-stable"
+        "image": "sdk-54"
       },
       "android": {
-        "image": "latest-stable",
+        "image": "sdk-54",
         "buildType": "apk"
       }
     },
@@ -21,11 +21,11 @@
       "distribution": "internal",
       "ios": {
         "simulator": false,
-        "image": "latest-stable",
+        "image": "sdk-54",
         "credentialsSource": "remote"
       },
       "android": {
-        "image": "latest-stable",
+        "image": "sdk-54",
         "buildType": "apk"
       }
     },
@@ -33,22 +33,22 @@
       "distribution": "internal",
       "ios": {
         "simulator": false,
-        "image": "latest-stable",
+        "image": "sdk-54",
         "credentialsSource": "remote"
       },
       "android": {
-        "image": "latest-stable",
+        "image": "sdk-54",
         "buildType": "apk"
       }
     },
     "production": {
       "autoIncrement": true,
       "ios": {
-        "image": "latest-stable",
+        "image": "sdk-54",
         "credentialsSource": "remote"
       },
       "android": {
-        "image": "latest-stable",
+        "image": "sdk-54",
         "buildType": "app-bundle"
       }
     }
