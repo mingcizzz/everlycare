@@ -108,13 +108,33 @@ function withWidgetTarget(config) {
     // DO NOT include AppIcon.appiconset in the widget — it duplicates the main
     // app's AppIcon compilation and causes "Unexpected duplicate tasks" ×2.
     const assetFiles = collectFiles(widgetDir, '.xcassets');
-    if (assetFiles.length > 0) {
+    const relativeAssetFiles = assetFiles.map(
+      (f) => path.relative(path.join(projectRoot, 'ios'), f)
+    );
+    if (relativeAssetFiles.length > 0) {
       xcodeProject.addBuildPhase(
-        assetFiles.map((f) => path.relative(path.join(projectRoot, 'ios'), f)),
+        relativeAssetFiles,
         'PBXResourcesBuildPhase',
         'Resources',
         widgetTarget.uuid
       );
+    }
+
+    // ── Create a PBXGroup for the widget so xcodeproj gem doesn't raise
+    // "no parent for object" during pod install (fix_library_search_paths
+    // calls project.save() which validates group membership).
+    const allWidgetFiles = [...relativeSwiftFiles, ...relativeAssetFiles];
+    const { uuid: widgetGroupUuid } = xcodeProject.addPbxGroup(
+      allWidgetFiles,
+      WIDGET_TARGET,
+      WIDGET_TARGET,
+      '"<group>"'
+    );
+    // Attach the new group to the project's main (root) group
+    const mainGroupUuid = xcodeProject.getFirstProject().firstProject.mainGroup;
+    const mainGroup = xcodeProject.getPBXGroupByKey(mainGroupUuid);
+    if (mainGroup) {
+      mainGroup.children.push({ value: widgetGroupUuid, comment: WIDGET_TARGET });
     }
 
     // Add build settings
