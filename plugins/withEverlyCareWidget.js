@@ -188,23 +188,28 @@ function withPodfileResourceBundleFix(config) {
 
       let podfile = fs.readFileSync(podfilePath, 'utf8');
 
-      const fixSnippet = `
-  # Fix: Xcode 14+ signs resource bundles by default — disable for all pods.
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-    end
-  end
-`;
+      if (podfile.includes('CODE_SIGNING_ALLOWED')) return mod; // already patched
 
-      // Insert just before the closing `end` of the post_install block
-      const postInstallEnd = podfile.lastIndexOf('\n  end\nend');
-      if (postInstallEnd !== -1 && !podfile.includes('CODE_SIGNING_ALLOWED')) {
-        podfile =
-          podfile.slice(0, postInstallEnd) +
-          fixSnippet +
-          podfile.slice(postInstallEnd);
+      const fix = `\n\n  # Fix: Xcode 14+ signs resource bundles by default — disable for all pods.\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'\n    end\n  end`;
+
+      // The Expo Podfile template ends with:
+      //   react_native_post_install(
+      //     ...
+      //     :ccache_enabled => ccache_enabled?(podfile_properties),
+      //   )       ← 4-space indent closing paren
+      //   end     ← 2-space post_install end
+      // end       ← 0-space target end
+      //
+      // Insert our fix right after the closing `)` of react_native_post_install,
+      // before the `  end` that closes the post_install block.
+      const marker = '\n    )\n  end\nend';
+      const idx = podfile.lastIndexOf(marker);
+      if (idx !== -1) {
+        const afterClosingParen = idx + '\n    )'.length;
+        podfile = podfile.slice(0, afterClosingParen) + fix + podfile.slice(afterClosingParen);
         fs.writeFileSync(podfilePath, podfile);
+      } else {
+        console.warn('[withEverlyCareWidget] Could not inject resource bundle fix — Podfile structure unexpected');
       }
 
       return mod;
