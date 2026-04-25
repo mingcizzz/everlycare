@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -20,6 +20,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../store/authStore';
 import { useRecipientStore } from '../../../store/recipientStore';
 import { useCareLogStore } from '../../../store/careLogStore';
+import { useToiletPredictionStore } from '../../../store/toiletPredictionStore';
+import { ToiletPredictionCard } from '../../../components/toilet/ToiletPredictionCard';
 import { colors } from '../../../theme';
 import { TimelineFeed } from '../../../components/log/TimelineFeed';
 import { QuickLogSheet } from '../log/QuickLogSheet';
@@ -79,6 +81,8 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { user } = useAuthStore();
   const { activeRecipient, loadRecipients } = useRecipientStore();
   const { logs, dailySummary, isLoading, loadLogs, loadDailySummary } = useCareLogStore();
+  const { prediction, isLoading: predLoading, refreshPrediction, onToiletVisitLogged } =
+    useToiletPredictionStore();
   const [ql, setQl] = useState<LogType | null>(null);
 
   const today = getToday();
@@ -94,7 +98,20 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     }
   }, [activeRecipient?.id, today]);
 
-  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+  useFocusEffect(useCallback(() => {
+    refresh();
+    if (activeRecipient) refreshPrediction(activeRecipient.id, activeRecipient);
+  }, [refresh, activeRecipient?.id]));
+
+  // Refresh prediction every 5 minutes while foregrounded
+  useEffect(() => {
+    if (!activeRecipient) return;
+    const id = setInterval(
+      () => refreshPrediction(activeRecipient.id, activeRecipient),
+      5 * 60 * 1000
+    );
+    return () => clearInterval(id);
+  }, [activeRecipient?.id]);
 
   const total = dailySummary?.totalLogs ?? 0;
   const pct = Math.min(1, total / TARGET);
@@ -185,6 +202,19 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           </ScrollView>
         </View>
 
+        {/* ━━ TOILET PREDICTION ━━ */}
+        {activeRecipient && (
+          <View style={st.section}>
+            <Text style={st.secTitle}>如厕预测</Text>
+            <ToiletPredictionCard
+              prediction={prediction}
+              isLoading={predLoading}
+              todayUrinations={logs.filter(l => l.logType === 'urination')}
+              onLogToilet={() => setQl('urination')}
+            />
+          </View>
+        )}
+
         {/* ━━ TIMELINE ━━ */}
         <View style={st.section}>
           <View style={st.secHead}>
@@ -216,7 +246,14 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
       {ql && activeRecipient && (
         <QuickLogSheet logType={ql} recipientId={activeRecipient.id}
           onDismiss={() => setQl(null)}
-          onSaved={() => { setQl(null); refresh(); }} />
+          onSaved={() => {
+            const loggedType = ql;
+            setQl(null);
+            refresh();
+            if (loggedType === 'urination' && activeRecipient) {
+              onToiletVisitLogged(activeRecipient.id, activeRecipient);
+            }
+          }} />
       )}
     </View>
   );

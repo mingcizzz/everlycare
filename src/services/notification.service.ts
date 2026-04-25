@@ -106,6 +106,24 @@ export const notificationService = {
     }
   },
 
+  /** Schedule a one-shot notification N seconds from now. Returns the notification ID. */
+  async scheduleOnceAfter(
+    secondsFromNow: number,
+    title: string,
+    body: string,
+    data?: Record<string, unknown>
+  ): Promise<string> {
+    return Notifications.scheduleNotificationAsync({
+      content: { title, body, sound: 'default', data: data ?? {} },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: Math.max(1, Math.floor(secondsFromNow)),
+        repeats: false,
+        channelId: 'reminders',
+      },
+    });
+  },
+
   async cancelAll(): Promise<void> {
     await Notifications.cancelAllScheduledNotificationsAsync();
   },
