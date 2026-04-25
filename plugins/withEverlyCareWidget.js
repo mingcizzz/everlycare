@@ -93,15 +93,17 @@ function withWidgetTarget(config) {
       return mod;
     }
 
-    // Add build phase: sources
+    // addTarget() returns a target with empty buildPhases — we must create them.
+    const relativeSwiftFiles = swiftFiles.map(
+      (f) => path.relative(path.join(projectRoot, 'ios'), f)
+    );
     xcodeProject.addBuildPhase(
-      swiftFiles.map((f) => path.relative(path.join(projectRoot, 'ios'), f)),
+      relativeSwiftFiles,
       'PBXSourcesBuildPhase',
       'Sources',
       widgetTarget.uuid
     );
 
-    // Add build phase: resources (assets)
     const assetFiles = collectFiles(widgetDir, '.xcassets');
     xcodeProject.addBuildPhase(
       assetFiles.map((f) => path.relative(path.join(projectRoot, 'ios'), f)),
@@ -126,8 +128,10 @@ function withWidgetTarget(config) {
       buildSettings.SWIFT_VERSION = '5.0';
       buildSettings.IPHONEOS_DEPLOYMENT_TARGET = '17.0';
       buildSettings.TARGETED_DEVICE_FAMILY = '"1,2"';
-      buildSettings.INFOPLIST_FILE = `"${IOS_WIDGET_DIR}/Info.plist"`;
-      buildSettings.CODE_SIGN_ENTITLEMENTS = `"${IOS_WIDGET_DIR}/EverlyCareWidget.entitlements"`;
+      // Paths must be relative to the ios/ directory (where .xcodeproj lives),
+      // NOT relative to the project root — so use WIDGET_TARGET, not IOS_WIDGET_DIR.
+      buildSettings.INFOPLIST_FILE = `"${WIDGET_TARGET}/Info.plist"`;
+      buildSettings.CODE_SIGN_ENTITLEMENTS = `"${WIDGET_TARGET}/EverlyCareWidget.entitlements"`;
       buildSettings.SKIP_INSTALL = 'YES';
       buildSettings.ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = 'NO';
       buildSettings.MARKETING_VERSION = '1.0';
