@@ -215,26 +215,50 @@ function withPodfileResourceBundleFix(config) {
 
       if (podfile.includes('CODE_SIGNING_ALLOWED')) return mod; // already patched
 
-      const fix = `\n\n  # Fix: Xcode 14+ signs resource bundles by default — disable for all pods.\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'\n    end\n  end`;
+      const fixLines = [
+        '',
+        '  # Fix: Xcode 14+ signs resource bundles by default — disable for all pods.',
+        '  installer.pods_project.targets.each do |target|',
+        '    target.build_configurations.each do |config|',
+        "      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'",
+        '    end',
+        '  end',
+      ].join('\n');
 
-      // The Expo Podfile template ends with:
-      //   react_native_post_install(
-      //     ...
-      //     :ccache_enabled => ccache_enabled?(podfile_properties),
-      //   )       ← 4-space indent closing paren
-      //   end     ← 2-space post_install end
-      // end       ← 0-space target end
-      //
-      // Insert our fix right after the closing `)` of react_native_post_install,
-      // before the `  end` that closes the post_install block.
-      const marker = '\n    )\n  end\nend';
-      const idx = podfile.lastIndexOf(marker);
-      if (idx !== -1) {
-        const afterClosingParen = idx + '\n    )'.length;
-        podfile = podfile.slice(0, afterClosingParen) + fix + podfile.slice(afterClosingParen);
-        fs.writeFileSync(podfilePath, podfile);
+      // Robust insertion: parse line-by-line to find the closing `end` of the
+      // `post_install do |installer|` block, then insert our fix before it.
+      // This is resilient to any variation in how Expo formats the Podfile.
+      const lines = podfile.split('\n');
+      let postInstallLine = -1;
+      let depth = 0;
+      let insertBefore = -1;
+
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (trimmed.startsWith('post_install do')) {
+          postInstallLine = i;
+          depth = 1;
+          continue;
+        }
+        if (postInstallLine !== -1) {
+          // Count block openers/closers to track nesting
+          if (/\bdo\b|\bdo\s*\|/.test(trimmed) && !trimmed.startsWith('#')) depth++;
+          if (trimmed === 'end') {
+            depth--;
+            if (depth === 0) {
+              insertBefore = i;
+              break;
+            }
+          }
+        }
+      }
+
+      if (insertBefore !== -1) {
+        lines.splice(insertBefore, 0, fixLines);
+        fs.writeFileSync(podfilePath, lines.join('\n'));
+        console.log('[withEverlyCareWidget] Injected CODE_SIGNING_ALLOWED fix into Podfile.');
       } else {
-        console.warn('[withEverlyCareWidget] Could not inject resource bundle fix — Podfile structure unexpected');
+        console.warn('[withEverlyCareWidget] Could not find post_install block — Podfile fix not injected.');
       }
 
       return mod;
