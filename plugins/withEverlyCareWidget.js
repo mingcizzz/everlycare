@@ -138,57 +138,21 @@ function withWidgetTarget(config) {
       buildSettings.CURRENT_PROJECT_VERSION = '1';
     });
 
-    // Embed extension in main app — use the existing product file reference
-    // from the Products group (created by addTarget) to avoid xcodeproj
-    // "no parent" consistency error caused by a dangling file reference.
-    const mainTarget = xcodeProject.getFirstTarget();
-    if (mainTarget) {
-      // Find the .appex product ref that addTarget placed in the Products group
-      const productsGroup = xcodeProject.pbxGroupByName('Products');
-      const widgetProduct = (productsGroup?.children || []).find(
-        (c) => c.comment === `${WIDGET_TARGET}.appex`
-      );
+    // NOTE: addTarget('EverlyCareWidget', 'app_extension', ...) automatically:
+    //   1. Creates a "Copy Files" PBXCopyFilesBuildPhase in the FIRST target (main app)
+    //   2. Adds EverlyCareWidget.appex to that phase
+    // Do NOT add another embed phase here — it would cause "Unexpected duplicate tasks".
 
-      if (widgetProduct) {
-        const buildFileUuid = xcodeProject.generateUuid();
-        // PBXBuildFile: reference the existing product, request code-sign on copy
-        xcodeProject.hash.project.objects['PBXBuildFile'][buildFileUuid] = {
-          isa: 'PBXBuildFile',
-          fileRef: widgetProduct.value,
-          settings: { ATTRIBUTES: ['CodeSignOnCopy', 'RemoveHeadersOnCopy'] },
+    // Set CodeSignOnCopy + RemoveHeadersOnCopy on the auto-created build file
+    // so the widget is properly signed when embedded.
+    const copyFilesPhase = xcodeProject.pbxCopyfilesBuildPhaseObj(widgetTarget.uuid);
+    if (copyFilesPhase && copyFilesPhase.files && copyFilesPhase.files.length > 0) {
+      const buildFileUuid = copyFilesPhase.files[0].value;
+      const buildFileSection = xcodeProject.hash.project.objects['PBXBuildFile'];
+      if (buildFileSection && buildFileSection[buildFileUuid]) {
+        buildFileSection[buildFileUuid].settings = {
+          ATTRIBUTES: ['CodeSignOnCopy', 'RemoveHeadersOnCopy'],
         };
-        xcodeProject.hash.project.objects['PBXBuildFile'][`${buildFileUuid}_comment`] =
-          `${WIDGET_TARGET}.appex in Embed App Extensions`;
-
-        // PBXCopyFilesBuildPhase: dstSubfolderSpec 13 = PlugIns
-        const phaseUuid = xcodeProject.generateUuid();
-        xcodeProject.hash.project.objects['PBXCopyFilesBuildPhase'] =
-          xcodeProject.hash.project.objects['PBXCopyFilesBuildPhase'] || {};
-        xcodeProject.hash.project.objects['PBXCopyFilesBuildPhase'][phaseUuid] = {
-          isa: 'PBXCopyFilesBuildPhase',
-          buildActionMask: 2147483647,
-          dstPath: '""',
-          dstSubfolderSpec: 13,
-          files: [
-            {
-              value: buildFileUuid,
-              comment: `${WIDGET_TARGET}.appex in Embed App Extensions`,
-            },
-          ],
-          name: '"Embed App Extensions"',
-          runOnlyForDeploymentPostprocessing: 0,
-        };
-        xcodeProject.hash.project.objects['PBXCopyFilesBuildPhase'][`${phaseUuid}_comment`] =
-          'Embed App Extensions';
-
-        // Wire the phase into the main target's buildPhases list
-        const mainTargetObj = xcodeProject.pbxNativeTargetSection()[mainTarget.uuid];
-        if (mainTargetObj?.buildPhases) {
-          mainTargetObj.buildPhases.push({
-            value: phaseUuid,
-            comment: 'Embed App Extensions',
-          });
-        }
       }
     }
 
